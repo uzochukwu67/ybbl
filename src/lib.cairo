@@ -8,6 +8,7 @@ mod ERC20Camel;
 mod airdrop_erc20;
 mod nft_stake;
 mod marketplace;
+mod privacy_yield_vault;
 
 #[cfg(test)]
 mod tests;
