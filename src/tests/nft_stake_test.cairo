@@ -1,10 +1,10 @@
-use reddio_cairo::ERC20::ERC20;
-use reddio_cairo::ERC20::IERC20Dispatcher;
-use reddio_cairo::ERC20::IERC20DispatcherTrait;
+use reddio_cairo::erc20::ERC20;
+use reddio_cairo::erc20::IERC20Dispatcher;
+use reddio_cairo::erc20::IERC20DispatcherTrait;
 
-use reddio_cairo::ERC721::ERC721;
-use reddio_cairo::ERC721::IERC721Dispatcher;
-use reddio_cairo::ERC721::IERC721DispatcherTrait;
+use reddio_cairo::erc721::ERC721;
+use reddio_cairo::erc721::IERC721Dispatcher;
+use reddio_cairo::erc721::IERC721DispatcherTrait;
 
 use reddio_cairo::nft_stake::NFTStake;
 use reddio_cairo::nft_stake::INFTStakeDispatcher;

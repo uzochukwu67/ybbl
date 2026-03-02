@@ -1,6 +1,6 @@
-use reddio_cairo::ERC20::ERC20;
-use reddio_cairo::ERC20::IERC20Dispatcher;
-use reddio_cairo::ERC20::IERC20DispatcherTrait;
+use reddio_cairo::erc20::ERC20;
+use reddio_cairo::erc20::IERC20Dispatcher;
+use reddio_cairo::erc20::IERC20DispatcherTrait;
 
 use integer::u256_from_felt252;
 
