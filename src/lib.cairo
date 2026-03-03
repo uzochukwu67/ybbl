@@ -1,13 +1,16 @@
 mod erc1155_receiver;
-mod ERC1155;
+mod erc1155;
 
 mod erc721_receiver;
-mod ERC721;
-mod ERC20;
-mod ERC20Camel;
+mod erc721;
+mod erc20;
+mod erc20Camel;
 mod airdrop_erc20;
 mod nft_stake;
 mod marketplace;
+mod privacy_yield_vault;
+mod interfaces;
+mod strategies;
 
 #[cfg(test)]
 mod tests;

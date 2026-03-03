@@ -1,14 +1,14 @@
-use reddio_cairo::ERC20::ERC20;
-use reddio_cairo::ERC20::IERC20Dispatcher;
-use reddio_cairo::ERC20::IERC20DispatcherTrait;
+use reddio_cairo::erc20::ERC20;
+use reddio_cairo::erc20::IERC20Dispatcher;
+use reddio_cairo::erc20::IERC20DispatcherTrait;
 
-use reddio_cairo::ERC721::ERC721;
-use reddio_cairo::ERC721::IERC721Dispatcher;
-use reddio_cairo::ERC721::IERC721DispatcherTrait;
+use reddio_cairo::erc721::ERC721;
+use reddio_cairo::erc721::IERC721Dispatcher;
+use reddio_cairo::erc721::IERC721DispatcherTrait;
 
-use reddio_cairo::ERC1155::ERC1155;
-use reddio_cairo::ERC1155::IERC1155Dispatcher;
-use reddio_cairo::ERC1155::IERC1155DispatcherTrait;
+use reddio_cairo::erc1155::ERC1155;
+use reddio_cairo::erc1155::IERC1155Dispatcher;
+use reddio_cairo::erc1155::IERC1155DispatcherTrait;
 
 use reddio_cairo::marketplace::Marketplace;
 use reddio_cairo::marketplace::IMarketplaceDispatcher;

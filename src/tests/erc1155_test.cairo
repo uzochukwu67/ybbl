@@ -1,6 +1,6 @@
-use reddio_cairo::ERC1155::ERC1155;
-use reddio_cairo::ERC1155::IERC1155Dispatcher;
-use reddio_cairo::ERC1155::IERC1155DispatcherTrait;
+use reddio_cairo::erc1155::ERC1155;
+use reddio_cairo::erc1155::IERC1155Dispatcher;
+use reddio_cairo::erc1155::IERC1155DispatcherTrait;
 
 use integer::u256_from_felt252;
 

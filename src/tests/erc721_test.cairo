@@ -1,6 +1,6 @@
-use reddio_cairo::ERC721::ERC721;
-use reddio_cairo::ERC721::IERC721Dispatcher;
-use reddio_cairo::ERC721::IERC721DispatcherTrait;
+use reddio_cairo::erc721::ERC721;
+use reddio_cairo::erc721::IERC721Dispatcher;
+use reddio_cairo::erc721::IERC721DispatcherTrait;
 
 use integer::u256_from_felt252;
 
