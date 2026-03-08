@@ -1,175 +1,209 @@
-# Reddio Cairo
-This is the Reddio Cairo repo which contains Cairo smart contract templates.
+# YBBC — Yield-Bearing Bonding Curve Launchpad
 
-Here are the smart contracts provied so far on this [repo](https://github.com/reddio-com/cairo).
+A PumpFun-style meme token launchpad on Starknet where every token launched is backed by **real Bitcoin yield**.
 
-| Name     | Description |
-|----------|-------------|
-|[Token](https://github.com/reddio-com/cairo/blob/scarb/src/erc20.cairo)|Create and mint ERC20 tokens.|
-|[Token Drop](https://github.com/reddio-com/cairo/blob/scarb/src/airdrop_erc20.cairo)|Distribute funds to multiple recipients.|
-|[NFT](https://github.com/reddio-com/cairo/blob/scarb/src/erc721.cairo)|Create and mint ERC721 token.|
-|[Edition](https://github.com/reddio-com/cairo/blob/scarb/src/erc1155.cairo)|Create editions of ERC1155 tokens.|
-|[NFT Stake](https://github.com/reddio-com/cairo/blob/scarb/src/nft_stake.cairo)|Stake ERC721 for ERC20 tokens as rewards.|
-|[NFT Marketplace](https://github.com/reddio-com/cairo/blob/scarb/src/marketplace.cairo)|Buy and sell ERC721/ERC1155 tokens with ERC20 tokens.|
+## The BTC-Yield Flywheel
 
-## Install Scarb
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh
 ```
-For Windows, follow manual setup in the [Scarb documentation](https://docs.swmansion.com/scarb/download.html?ref=blog.reddio.com#windows).
-
-Restart the terminal and check if Scarb is installed correctly:
-
-```bash
-scarb --version
+User buys meme token with wBTC
+         │
+         ▼
+  wBTC reserve accumulates
+  on the bonding curve
+         │
+         ▼  (reserve ≥ graduation threshold)
+  ┌──────────────────────────┐
+  │       GRADUATION         │
+  │  1. Reserve → Vesu       │  ← wBTC earns 3–5% APY
+  │  2. Meme token → Ekubo   │  ← full-range LP seeded
+  └──────────────────────────┘
+         │
+         ▼  (anyone calls harvest_yield)
+  ┌──────────────────────────┐
+  │     YIELD HARVEST        │
+  │  1. Withdraw accrued     │
+  │     yield from Vesu      │
+  │  2. Mint meme tokens at  │
+  │     graduation price     │
+  │  3. Seed new Ekubo LP    │  ← deepens meme liquidity
+  └──────────────────────────┘
+         │
+         ▼
+  More Ekubo LP depth
+  → tighter spreads
+  → better trading UX
+  → more buyers
+  → more wBTC flows in
+  → more yield generated
+  → repeat ♻️
 ```
 
-## Compile & Build
+### Why wBTC as the Base Asset?
+
+- **wBTC earns real yield** — once graduated to Vesu, the reserve compounds at ~3-5% APY
+- **Yield deepens LP** — every harvest cycle adds a new Ekubo full-range position, tightening spreads
+- **No inflationary buybacks** — meme tokens minted during harvest are matched by real wBTC yield
+- **BTC-native narrative** — the meme token's value is permanently backstopped by Bitcoin productivity
+
+---
+
+## Architecture
+
+### Smart Contracts (`src/`)
+
+| File | Description |
+|------|-------------|
+| `launchpad.cairo` | Factory + bonding curve + graduation + yield flywheel |
+| `erc20.cairo` | Launchable meme token (mint/burn gated to launchpad) |
+| `ekubo_interfaces.cairo` | Minimal Ekubo Positions + Core interfaces |
+
+### Bonding Curve Formula (quadratic)
+
+```
+buy_cost(S, delta)    = K × (2S + delta) × delta
+sell_payout(S, delta) = K × (2S − delta) × delta
+```
+
+`K` = curve steepness constant (default: 40), `S` = current supply sold.
+
+1% fee applied on every buy and sell; fees accumulate in the launchpad and are swept to the Ekubo LP at graduation.
+
+### Entry Points
+
+```cairo
+fn launch_token(name, symbol, base_asset) -> ContractAddress
+fn buy(token, delta, max_cost) -> u256          // returns cost paid
+fn sell(token, delta, min_payout) -> u256       // returns payout received
+fn buy_anonymous(token, delta, max_cost,        // ZK privacy buy
+                 nullifier, proof) -> u256
+fn graduate(token)                              // permissionless once eligible
+fn harvest_yield(token) -> u256                 // pull Vesu yield → deepen Ekubo LP
+fn collect_lp_fees(token)                       // collect Ekubo swap fees
+```
+
+### Graduation Flow
+
+1. Reserve accumulates until `reserve >= grad_threshold`
+2. `graduate()` is called (permissionless — anyone can trigger it)
+3. wBTC reserve is deposited into Vesu (starts earning yield)
+4. A full-range Ekubo LP is seeded with wBTC + meme tokens
+5. Token is marked graduated — bonding curve trading halts
+
+### Harvest Yield Flow
+
+1. Vesu position accrues yield passively over time
+2. Anyone calls `harvest_yield(token)`
+3. Only the yield is withdrawn: `yield = current_position − principal`
+4. Meme tokens minted at graduation price ratio: `meme_minted = yield × supply / principal`
+5. New Ekubo LP position created with yield wBTC + minted meme tokens
+6. This permanently deepens the meme token's on-chain liquidity
+
+---
+
+## ZK Anonymous Buys
+
+Built with [Noir](https://noir-lang.org/). Users can buy tokens without linking their wallet identity to the purchase.
+
+```
+Prover computes:  nullifier = hash(secret, nonce)
+Circuit proves:   knowledge of secret s.t. hash(secret, nonce) == nullifier
+On-chain:         nullifier recorded → prevents replay attacks
+```
+
+- Circuit: `circuits/anonymous_buy/src/main.nr`
+- On-chain verifier: `src/noir_verifier.cairo`
+
+---
+
+## Deployments
+
+### Sepolia Testnet (active)
+
+| Contract | Address | Explorer |
+|----------|---------|---------|
+| **Launchpad** | `0x04206063d4668834e4968ca66a8eaeb186c7d8b888bd818100c228b3de60981c` | [Voyager](https://sepolia.voyager.online/contract/0x04206063d4668834e4968ca66a8eaeb186c7d8b888bd818100c228b3de60981c) |
+| ERC20 class | `0x2d2f4cf49064e879da0b0fb0a3c00d2e1dc3c6e59dfbdc0836da7be6cbfba` | [Voyager](https://sepolia.voyager.online/class/0x0002d2f4cf49064e879da0b0fb0a3c00d2e1dc3c6e59dfbdc0836da7be6cbfba) |
+| Launchpad class | `0x4310f81fa33fce36e578f39a9980b0c7bf499cff49aac600557aaa7faa9ad9f` | [Voyager](https://sepolia.voyager.online/class/0x04310f81fa33fce36e578f39a9980b0c7bf499cff49aac600557aaa7faa9ad9f) |
+| Ekubo Core | `0x0444a09d96389aa7148f1aada508e30b71299ffe650d9c97fdaae38cb9a23384` | Ekubo |
+| Ekubo Positions | `0x06a2aee84bb0ed5dded4384ddd0e40e9c1372b818668375ab8e3ec08807417e5` | Ekubo |
+
+**Deployment tx:** [`0x07bdad26...`](https://sepolia.voyager.online/tx/0x07bdad26075ce5c6aa228017b7bdc4523c55abef1b297fdb448a59a0c789c43c)
+
+> Vesu is not on Sepolia — graduation creates an Ekubo LP but Vesu yield is disabled on testnet.
+> Pass `vesu_pool_id = 0` when calling `launch_token` on Sepolia.
+
+### Mainnet Protocol Addresses (for production deployment)
+
+| Contract | Address |
+|----------|---------|
+| Ekubo Positions NFT | `0x02e0af29598b407c8716b17f6d2795eca1b471413fa03fb145a5e33722184067` |
+| Ekubo Core | `0x00000005dd3D2F4429AF886cD1a3b08289DBcEa99A294197E9eB43b0e0325b4b` |
+| wBTC | `0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac` |
+| USDC | `0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8` |
+| STRK | `0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d` |
+| Vesu Singleton | TBD — use Genesis pool ID `0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e` |
+
+---
+
+## Development
+
+### Prerequisites
+
+- [Scarb](https://docs.swmansion.com/scarb/) v2.6+
+- [snforge](https://foundry-rs.github.io/starknet-foundry/) (Starknet Foundry)
+- Node.js 18+ (for frontend)
+
+### Build contracts
 
 ```bash
+cd earnv2
 scarb build
 ```
 
-Then you will get the `target` directory, which contains the compiled sierra files.
-
-## Install Starkli
-
-If you're on Linux/macOS/WSL/Android, you can install stakrliup by running the following command:
-```bash
-curl https://get.starkli.sh | sh
-```
-
-You might need to restart your shell session for the starkliup command to become available. Once it's available, run the starkliup command:
-```bash
-starkliup
-```
-
-Running the commands installs starkli for you, and upgrades it to the latest release if it's already installed.
-
-`starkliup` detects your device's platform and automatically downloads the right prebuilt binary. It also sets up shell completions. You might need to restart your shell session for the completions to start working.
-
-## Account Creation
-
-Generate keystore:
-```bash
-starkli signer keystore new /path/to/keystore
-```
-then a keystore file will be created at `/path/to/keystore`.
-
-You can then use it via the `--keystore <PATH>` option for commands expecting a signer.
-
-Alternatively, you can set the `STARKNET_KEYSTORE` environment variable to make command invocations easier:
+### Run tests
 
 ```bash
-export STARKNET_KEYSTORE="/path/to/keystore"
+# Unit tests (no fork required)
+snforge test --filter launchpad_test
+
+# Mainnet fork tests (requires RPC in snfoundry.toml)
+snforge test --filter wbtc_fork
+snforge test --filter nomock
 ```
 
-Before creating an account, you must first decide on the variant to use. As of this writing, the only supported variant is `oz`, the OpenZeppelin account contract.
+Configure your RPC endpoint in `snfoundry.toml`:
 
-All variants come with an init subcommand that creates an account file ready to be deployed. For example, to create an `oz` account:
+```toml
+[profile.default.fork.mainnet]
+url = "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_7/<your-key>"
+block_id = { tag = "latest" }
+```
+
+### Run frontend
 
 ```bash
-starkli account oz init /path/to/account
+cd earnv2/frontend
+npm install
+cp .env.example .env.local   # set NEXT_PUBLIC_LAUNCHPAD_ADDRESS
+npm run dev
 ```
 
-## Account deployment
-Once you have an account file, you can deploy the account contract with the `starkli account deploy` command. This command sends a `DEPLOY_ACCOUNT` transaction, which requires the account to be funded with some `ETH` for paying for the transaction fee.
+---
 
-> You can get some test funds [here](https://faucet.goerli.starknet.io/).
+## Frontend Pages
 
-For example, to deploy the account we just created:
+| Page | Description |
+|------|-------------|
+| `/` | Landing — BTC/ZK narrative, flywheel explainer |
+| `/explore` | Token grid with graduation progress bars |
+| `/launch` | Deploy a new bonding curve token (wBTC default) |
+| `/token/[address]` | Chart, buy/sell, graduation, yield harvest |
 
-```bash
-starkli account deploy /path/to/account
-```
+---
 
-When run, the command shows the address where the contract will be deployed on, and instructs the user to fund the account before proceeding. Here's an example command output:
+## Security Notes
 
-```bash
-The estimated account deployment fee is 0.000011483579723913 ETH. However, to avoid failure, fund at least:
-    0.000017225369585869 ETH
-to the following address:
-    0x01cf4d57ba01109f018dec3ea079a38fc08b789e03de4df937ddb9e8a0ff853a
-Press [ENTER] once you've funded the address.
-```
-
-Once the account deployment transaction is confirmed, the account file will be update to reflect the deployment status. It can then be used for commands where an account is expected. You can pass the account either with the `--account` parameter, or with the `STARKNET_ACCOUNT` environment variable.
-
-## Account fetching
-Account fetching allows recreating the account file from on-chain data alone. This could be helpful when:
-
-+ the account file is lost; or
-+ migrating an account from another tool/application.
-
-The `starkli account fetch` commands creates an account file using just the address provided:
-
-```bash
-starkli account fetch <ADDRESS> --output /path/to/account
-```
-
-Running the command above creates the account file at `/path/to/account`.
-
-## Declaring classes
-In Starknet, all deployed contracts are instances of certain declared classes. Therefore, the first step of deploying a contract is declaring a class, if it hasn't been declared already.
-
-With Starkli, this is done with the `starkli declare` command.
-
-Before declare, you should set environment variables for Starkli:
-
-```bash
-export STARKNET_ACCOUNT=/path/to/keystore
-export STARKNET_KEYSTORE=/path/to/account
-```
-
-After `scarb build`, you will get the `*.contract_class.json` file in the `target` directory(`*.sierra.json` for older version of Scarb), which we'll use to declare the contract class:
-
-```bash
-starkli declare *.contract_class.json
-```
-
-such as:
-```bash
-starkli declare target/dev/reddio_cairo_Marketplace.contract_class.json
-```
-
-You may get an error:
-```bash
-Not declaring class as it's already declared.
-```
-
-This is because the class has been declared by someone else before and a class cannot be declared twice in Starknet. You can just deploy it using the current declared class or write a new unique contract.
-
-Once the declaration is successful, Starkli displays the class hash declared. The class hash is needed for deploying contracts.
-
-## Deploying contracts
-Once you obtain a class hash by declaring a class, it's ready to deploy instances of the class.
-
-With Starkli, this is done with the `starkli deploy` command.
-
-To deploy a contract with class hash `<CLAS_HASH>`, simply run:
-
-```bash
-starkli deploy <CLASS_HASH> <CTOR_ARGS>
-```
-
-where `<CTOR_ARGS>` is the list of constructor arguments, if any.
-
-Note that string parameters should be cast to hexadecimal in CLI.
-
-## Invoking contracts
-
-With Starkli, this is done with the starkli invoke command.
-
-The basic format of a starkli invoke command is the following:
-
-```bash
-starkli invoke <ADDRESS> <SELECTOR> <ARGS>
-```
-
-For example, to mint 1,000,000 tokens for ERC20 contract to 0x4e1f5590b0fc94f4ba6b563937ec652a9cbfc7b7372433fb4f1eaf2464a3de, you can run:
-
-```bash
-starkli invoke 0x007dda0853091a7f359b17eeb5ea234c9a626da5f389837c4cbeba9ff88e5bb6 mint 0x4e1f5590b0fc94f4ba6b563937ec652a9cbfc7b7372433fb4f1eaf2464a3de u256:100000
-```
-
-For more information about starkli, touch [here](https://book.starkli.rs/).
+- Bonding curve slippage is enforced via `max_cost` (buy) and `min_payout` (sell) — always set these
+- ZK nullifiers prevent replay attacks in anonymous buy flow
+- `harvest_yield` only withdraws accrued yield — the Vesu principal is never touched
+- `graduate()` is permissionless but idempotent (fires exactly once per token)

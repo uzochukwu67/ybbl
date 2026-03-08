@@ -1,0 +1,7 @@
+[package]
+name = "anonymous_buy"
+type = "bin"
+authors = ["Stark-Stakes FC"]
+compiler_version = "1.0.0"
+
+[dependencies]

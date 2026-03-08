@@ -1,7 +1,14 @@
 use starknet::ContractAddress;
 
+/// CamelCase ERC20 interface — required by Ekubo and OZ-compatible protocols.
 #[starknet::interface]
-trait IERC20<TContractState> {
+pub trait IERC20Camel<TContractState> {
+    fn transferFrom(ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) -> bool;
+    fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
+}
+
+#[starknet::interface]
+pub trait IERC20<TContractState> {
     fn get_name(self: @TContractState) -> felt252;
     fn get_symbol(self: @TContractState) -> felt252;
     fn get_decimals(self: @TContractState) -> u8;
@@ -18,14 +25,20 @@ trait IERC20<TContractState> {
         ref self: TContractState, spender: ContractAddress, subtracted_value: u256
     );
     fn mint(ref self: TContractState, recipient: ContractAddress, amount: u256);
+    fn burn(ref self: TContractState, from: ContractAddress, amount: u256);
+    fn get_minter(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::contract]
 mod ERC20 {
-    use zeroable::Zeroable;
+    use core::num::traits::Zero;
     use starknet::get_caller_address;
     use starknet::contract_address_const;
     use starknet::ContractAddress;
+    use starknet::storage::StoragePointerReadAccess;
+    use starknet::storage::StoragePointerWriteAccess;
+    use starknet::storage::StorageMapReadAccess;
+    use starknet::storage::StorageMapWriteAccess;
 
     #[storage]
     struct Storage {
@@ -33,8 +46,9 @@ mod ERC20 {
         symbol: felt252,
         decimals: u8,
         total_supply: u256,
-        balances: LegacyMap::<ContractAddress, u256>,
-        allowances: LegacyMap::<(ContractAddress, ContractAddress), u256>,
+        balances: LegacyMap<ContractAddress, u256>,
+        allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
+        minter: ContractAddress,
     }
 
     #[event]
@@ -61,23 +75,13 @@ mod ERC20 {
         ref self: ContractState,
         name_: felt252,
         symbol_: felt252,
-        decimals_: u8, // initial_supply: u128,
-    // recipient: ContractAddress
+        decimals_: u8,
+        minter_: ContractAddress,
     ) {
         self.name.write(name_);
         self.symbol.write(symbol_);
         self.decimals.write(decimals_);
-    // assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
-    // self.total_supply.write(initial_supply);
-    // self.balances.write(recipient, initial_supply);
-    // self
-    //     .emit(
-    //         Event::Transfer(
-    //             Transfer {
-    //                 from: contract_address_const::<0>(), to: recipient, value: initial_supply
-    //             }
-    //         )
-    //     );
+        self.minter.write(minter_);
     }
 
 
@@ -151,6 +155,10 @@ mod ERC20 {
         }
 
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+            let minter = self.minter.read();
+            if !minter.is_zero() {
+                assert(get_caller_address() == minter, 'ERC20: only minter');
+            }
             self.balances.write(recipient, self.balances.read(recipient) + amount);
             self.total_supply.write(self.total_supply.read() + amount);
             self
@@ -161,6 +169,50 @@ mod ERC20 {
                         }
                     )
                 );
+        }
+
+        fn burn(ref self: ContractState, from: ContractAddress, amount: u256) {
+            let minter = self.minter.read();
+            if !minter.is_zero() {
+                assert(get_caller_address() == minter, 'ERC20: only minter');
+            }
+            assert(!from.is_zero(), 'ERC20: burn from 0');
+            assert(self.balances.read(from) >= amount, 'ERC20: burn exceeds balance');
+            self.balances.write(from, self.balances.read(from) - amount);
+            self.total_supply.write(self.total_supply.read() - amount);
+            self
+                .emit(
+                    Event::Transfer(
+                        Transfer {
+                            from, to: contract_address_const::<0>(), value: amount
+                        }
+                    )
+                );
+        }
+
+        fn get_minter(self: @ContractState) -> ContractAddress {
+            self.minter.read()
+        }
+    }
+
+    /// CamelCase aliases — required for Ekubo and OZ-compatible protocol calls.
+    /// Ekubo's internal ERC20 interface uses transferFrom / balanceOf (camelCase).
+    #[abi(embed_v0)]
+    impl ERC20CamelImpl of super::IERC20Camel<ContractState> {
+        fn transferFrom(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256,
+        ) -> bool {
+            let caller = starknet::get_caller_address();
+            self.spend_allowance(sender, caller, amount);
+            self.transfer_helper(sender, recipient, amount);
+            true
+        }
+
+        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+            self.balances.read(account)
         }
     }
 

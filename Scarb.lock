@@ -2,13 +2,23 @@
 version = 1
 
 [[package]]
-name = "reddio_cairo"
+name = "game"
 version = "0.1.0"
 dependencies = [
  "snforge_std",
 ]
 
 [[package]]
+name = "snforge_scarb_plugin"
+version = "0.57.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:e2f638625b0dc1d9e4b413bd463db6c3e44809cff7aeeb55459c71df877f679f"
+
+[[package]]
 name = "snforge_std"
-version = "0.1.0"
-source = "git+https://github.com/foundry-rs/starknet-foundry.git?tag=v0.9.1#da085bd11e1b151d0592f43917136560d9b70d37"
+version = "0.57.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:ad59592257cbb26771c2a17fc487661e77714cc6677a044a79388cfa08e92da8"
+dependencies = [
+ "snforge_scarb_plugin",
+]

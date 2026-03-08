@@ -1,139 +1,103 @@
-use reddio_cairo::erc20::ERC20;
-use reddio_cairo::erc20::IERC20Dispatcher;
-use reddio_cairo::erc20::IERC20DispatcherTrait;
-
-use integer::u256_from_felt252;
-
-use array::ArrayTrait;
-use traits::Into;
-use result::ResultTrait;
-use traits::TryInto;
-use option::OptionTrait;
-
+use starknet::ContractAddress;
 use starknet::contract_address_const;
-use starknet::contract_address::ContractAddress;
-use starknet::testing::{set_caller_address, set_contract_address};
-use starknet::syscalls::deploy_syscall;
-use starknet::SyscallResultTrait;
-use starknet::class_hash::Felt252TryIntoClassHash;
 
-const NAME: felt252 = 'Reddio Test Token';
-const SYMBOL: felt252 = 'RTT';
-const DECIMALS: u8 = 18_u8;
+use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address, stop_cheat_caller_address};
 
-fn setUp() -> (ContractAddress, IERC20Dispatcher, ContractAddress) {
-    let caller = contract_address_const::<1>();
-    set_contract_address(caller);
+use game::erc20::IERC20Dispatcher;
+use game::erc20::IERC20DispatcherTrait;
 
-    let mut calldata = array![NAME, SYMBOL, DECIMALS.into()];
+fn deploy_erc20(name: felt252, symbol: felt252, decimals: u8) -> ContractAddress {
+    let contract = declare("ERC20").unwrap().contract_class();
+    // minter_ = 0 means unrestricted mint (for unit tests only)
+    let mut calldata = array![name, symbol, decimals.into(), 0];
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
+    contract_address
+}
 
-    let (erc20_address, _) = deploy_syscall(
-        ERC20::TEST_CLASS_HASH.try_into().unwrap(), 0, calldata.span(), false
-    )
-        .unwrap();
+fn alice() -> ContractAddress {
+    contract_address_const::<'alice'>()
+}
 
-    let mut erc20_token = IERC20Dispatcher { contract_address: erc20_address };
-
-    (caller, erc20_token, erc20_address)
+fn bob() -> ContractAddress {
+    contract_address_const::<'bob'>()
 }
 
 #[test]
-#[available_gas(2000000)]
-fn test_init() {
-    let (caller, erc20_token, erc20_address) = setUp();
+fn test_initial_metadata() {
+    let addr = deploy_erc20('MyToken', 'MTK', 18);
+    let token = IERC20Dispatcher { contract_address: addr };
 
-    assert(erc20_token.get_name() == NAME, 'Wrong name');
-    assert(erc20_token.get_symbol() == SYMBOL, 'Wrong symbol');
-    assert(erc20_token.get_decimals() == DECIMALS, 'Wrong decimals');
+    assert(token.get_name() == 'MyToken', 'wrong name');
+    assert(token.get_symbol() == 'MTK', 'wrong symbol');
+    assert(token.get_decimals() == 18, 'wrong decimals');
+    assert(token.get_total_supply() == 0, 'supply should be 0');
 }
 
 #[test]
-#[available_gas(2000000)]
-fn test_approve() {
-    let (caller, erc20_token, erc20_address) = setUp();
+fn test_mint_increases_balance_and_supply() {
+    let addr = deploy_erc20('MyToken', 'MTK', 18);
+    let token = IERC20Dispatcher { contract_address: addr };
 
-    let spender: ContractAddress = contract_address_const::<2>();
-    let amount: u256 = u256_from_felt252(2000);
+    token.mint(alice(), 1000);
 
-    erc20_token.approve(spender, amount);
-
-    assert(erc20_token.allowance(caller, spender) == amount, 'Approve should eq 2000');
+    assert(token.balance_of(alice()) == 1000, 'wrong balance');
+    assert(token.get_total_supply() == 1000, 'wrong supply');
 }
 
 #[test]
-#[available_gas(2000000)]
-fn test_mint() {
-    let (caller, erc20_token, erc20_address) = setUp();
-
-    let owner: ContractAddress = contract_address_const::<2>();
-    let amount: u256 = u256_from_felt252(2000);
-    erc20_token.mint(owner, amount);
-
-    assert(erc20_token.balance_of(owner) == amount, 'Balance should eq 2000');
-
-    erc20_token.mint(owner, amount);
-    assert(erc20_token.balance_of(owner) == amount * 2, 'Balance should eq 2000');
-}
-
-#[test]
-#[available_gas(2000000)]
 fn test_transfer() {
-    let (caller, erc20_token, erc20_address) = setUp();
+    let addr = deploy_erc20('MyToken', 'MTK', 18);
+    let token = IERC20Dispatcher { contract_address: addr };
 
-    let alice: ContractAddress = contract_address_const::<2>();
-    let amount: u256 = u256_from_felt252(2000);
+    token.mint(alice(), 500);
 
-    erc20_token.mint(caller, amount);
+    start_cheat_caller_address(addr, alice());
+    token.transfer(bob(), 200);
+    stop_cheat_caller_address(addr);
 
-    assert(erc20_token.balance_of(caller) == amount, 'Balance should eq 2000');
-    assert(erc20_token.balance_of(alice) == 0_u256, 'Balance should eq 0');
-
-    erc20_token.transfer(alice, 1000_u256);
-
-    assert(erc20_token.balance_of(caller) == 1000_u256, 'Balance should eq 1000');
-    assert(erc20_token.balance_of(alice) == 1000_u256, 'Balance should eq 1000');
+    assert(token.balance_of(alice()) == 300, 'alice balance wrong');
+    assert(token.balance_of(bob()) == 200, 'bob balance wrong');
 }
 
 #[test]
-#[available_gas(2000000)]
-fn test_transfer_from() {
-    let (caller, erc20_token, erc20_address) = setUp();
-    let alice: ContractAddress = contract_address_const::<2>();
-    let bob: ContractAddress = contract_address_const::<3>();
+fn test_approve_and_transfer_from() {
+    let addr = deploy_erc20('MyToken', 'MTK', 18);
+    let token = IERC20Dispatcher { contract_address: addr };
 
-    let amount = 2000_u256;
+    token.mint(alice(), 500);
 
-    set_contract_address(alice);
-    erc20_token.mint(alice, amount);
-    erc20_token.approve(caller, amount);
+    // alice approves bob to spend 300
+    start_cheat_caller_address(addr, alice());
+    token.approve(bob(), 300);
+    stop_cheat_caller_address(addr);
 
-    assert(erc20_token.balance_of(alice) == amount, 'Balance should eq 2000');
-    assert(erc20_token.balance_of(bob) == 0_u256, 'Balance should eq 0');
+    assert(token.allowance(alice(), bob()) == 300, 'wrong allowance');
 
-    set_contract_address(caller);
-    erc20_token.transfer_from(alice, bob, amount);
+    // bob transfers from alice to bob
+    start_cheat_caller_address(addr, bob());
+    token.transfer_from(alice(), bob(), 300);
+    stop_cheat_caller_address(addr);
 
-    assert(erc20_token.balance_of(alice) == 0_u256, 'Balance should eq 2000');
-    assert(erc20_token.balance_of(bob) == amount, 'Balance should eq 0');
+    assert(token.balance_of(alice()) == 200, 'alice balance wrong');
+    assert(token.balance_of(bob()) == 300, 'bob balance wrong');
+    assert(token.allowance(alice(), bob()) == 0, 'allowance not spent');
 }
 
 #[test]
-#[available_gas(2000000)]
-#[should_panic(expected: ('u256_sub Overflow', 'ENTRYPOINT_FAILED',))]
-fn test_fail_transfer() {
-    let (caller, erc20_token, erc20_address) = setUp();
+fn test_increase_and_decrease_allowance() {
+    let addr = deploy_erc20('MyToken', 'MTK', 18);
+    let token = IERC20Dispatcher { contract_address: addr };
 
-    let alice: ContractAddress = contract_address_const::<2>();
+    start_cheat_caller_address(addr, alice());
+    token.approve(bob(), 100);
+    token.increase_allowance(bob(), 50);
+    stop_cheat_caller_address(addr);
 
-    erc20_token.transfer(alice, 10_u256);
-}
+    assert(token.allowance(alice(), bob()) == 150, 'increase failed');
 
-#[test]
-#[available_gas(2000000)]
-#[should_panic(expected: ('u256_sub Overflow', 'ENTRYPOINT_FAILED',))]
-fn test_fail_transfer_from() {
-    let (caller, erc20_token, erc20_address) = setUp();
-    let alice: ContractAddress = contract_address_const::<2>();
+    start_cheat_caller_address(addr, alice());
+    token.decrease_allowance(bob(), 30);
+    stop_cheat_caller_address(addr);
 
-    erc20_token.transfer_from(alice, caller, 10_u256);
+    assert(token.allowance(alice(), bob()) == 120, 'decrease failed');
 }

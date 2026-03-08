@@ -1,0 +1,23 @@
+/* Global Styling */
+
+html,
+body {
+  height: 100%;
+  background-color: #0d0d12;
+  color: #f2f2f3;
+}
+
+#__next {
+  height: 100%;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #1c1c22; }
+::-webkit-scrollbar-thumb { background: #F7931A; border-radius: 3px; }
+
+/* Bonding curve chart */
+.curve-area-sold { fill: rgba(247, 147, 26, 0.25); }
+.curve-area-unsold { fill: rgba(247, 147, 26, 0.06); }
+.curve-line { stroke: #F7931A; stroke-width: 2; fill: none; }
+.curve-grad-line { stroke: #10b981; stroke-width: 1; stroke-dasharray: 4; }

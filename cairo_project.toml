@@ -1,2 +1,2 @@
 [crate_roots]
-reddio_cairo = "src"
+game = "src"
