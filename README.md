@@ -121,9 +121,9 @@ On-chain:         nullifier recorded → prevents replay attacks
 
 | Contract | Address | Explorer |
 |----------|---------|---------|
-| **Launchpad** | `0x04206063d4668834e4968ca66a8eaeb186c7d8b888bd818100c228b3de60981c` | [Voyager](https://sepolia.voyager.online/contract/0x04206063d4668834e4968ca66a8eaeb186c7d8b888bd818100c228b3de60981c) |
+| **Launchpad** | `0x0130eced40d347abf0ed51bd37f71303c296bc8471bbeba9deb21e03666f2497` | [Voyager](https://sepolia.voyager.online/contract/0x0130eced40d347abf0ed51bd37f71303c296bc8471bbeba9deb21e03666f2497) |
 | ERC20 class | `0x2d2f4cf49064e879da0b0fb0a3c00d2e1dc3c6e59dfbdc0836da7be6cbfba` | [Voyager](https://sepolia.voyager.online/class/0x0002d2f4cf49064e879da0b0fb0a3c00d2e1dc3c6e59dfbdc0836da7be6cbfba) |
-| Launchpad class | `0x4310f81fa33fce36e578f39a9980b0c7bf499cff49aac600557aaa7faa9ad9f` | [Voyager](https://sepolia.voyager.online/class/0x04310f81fa33fce36e578f39a9980b0c7bf499cff49aac600557aaa7faa9ad9f) |
+| Launchpad class | `0x129a7ca85aa4ca034e7d0f906ff3b99072d9e0c4ef91b92e19d9164c1b16933` | [Voyager](https://sepolia.voyager.online/class/0x0129a7ca85aa4ca034e7d0f906ff3b99072d9e0c4ef91b92e19d9164c1b16933) |
 | Ekubo Core | `0x0444a09d96389aa7148f1aada508e30b71299ffe650d9c97fdaae38cb9a23384` | Ekubo |
 | Ekubo Positions | `0x06a2aee84bb0ed5dded4384ddd0e40e9c1372b818668375ab8e3ec08807417e5` | Ekubo |
 

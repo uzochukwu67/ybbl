@@ -1,22 +1,20 @@
-import { getStarknet } from "@argent/get-starknet";
+import { connect } from "@argent/get-starknet";
 import { toast } from "material-react-toastify";
 import React from "react";
-import { Provider, ProviderInterface } from "starknet";
+import { RpcProvider } from "starknet";
 
 import { StarknetState } from "./model";
 
-// starknet.js v2.5.0 Provider takes options directly (no "sequencer" wrapper).
-// "network" accepts "mainnet-alpha" or "goerli-alpha"; for Sepolia use baseUrl.
-const sepoliaProvider = new Provider({
-  baseUrl: "https://alpha-sepolia.starknet.io",
-  feederGatewayUrl: "https://alpha-sepolia.starknet.io/feeder_gateway",
-  gatewayUrl: "https://alpha-sepolia.starknet.io/gateway",
-} as any);
+// Public Sepolia JSON-RPC endpoint (feeder gateway is deprecated on Sepolia)
+const sepoliaProvider = new RpcProvider({
+  nodeUrl: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7",
+});
 
 interface StarknetManagerState {
   account?: string;
   connected?: boolean;
-  library: ProviderInterface;
+  library: RpcProvider;
+  walletAccount?: any;
 }
 
 interface SetAccount {
@@ -24,17 +22,17 @@ interface SetAccount {
   account: string;
 }
 
-interface SetProvider {
-  type: "set_provider";
-  provider: ProviderInterface;
-}
-
 interface SetConnected {
   type: "set_connected";
   con: boolean;
 }
 
-type Action = SetAccount | SetProvider | SetConnected;
+interface SetWalletAccount {
+  type: "set_wallet_account";
+  walletAccount: any;
+}
+
+type Action = SetAccount | SetConnected | SetWalletAccount;
 
 function reducer(
   state: StarknetManagerState,
@@ -44,11 +42,11 @@ function reducer(
     case "set_account": {
       return { ...state, account: action.account };
     }
-    case "set_provider": {
-      return { ...state, library: action.provider };
-    }
     case "set_connected": {
       return { ...state, connected: action.con };
+    }
+    case "set_wallet_account": {
+      return { ...state, walletAccount: action.walletAccount };
     }
     default: {
       return state;
@@ -56,53 +54,55 @@ function reducer(
   }
 }
 
+const toastOpts = {
+  position: "top-left" as const,
+  autoClose: 4000,
+  hideProgressBar: true,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+};
+
 const useStarknetManager = (): StarknetState => {
-  const starknet = getStarknet({ showModal: false });
   const [state, dispatch] = React.useReducer(reducer, {
     library: sepoliaProvider,
   });
 
-  const { account, connected, library } = state;
+  const { account, connected, library, walletAccount } = state;
 
   const checkMissingWallet = React.useCallback(async () => {
     try {
-      await starknet.enable();
-    } catch (e) {
-      toast.error("⚠️ Argent-X wallet extension missing!", {
-        position: "top-left",
-        autoClose: 4000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      const wallet = await connect({ modalMode: "neverAsk" });
+      if (!wallet) throw new Error("No wallet");
+      await wallet.enable();
+    } catch {
+      toast.error("⚠️ Argent-X wallet extension missing!", toastOpts);
     }
-  }, [starknet]);
+  }, []);
 
   const connectBrowserWallet = React.useCallback(async () => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      const [account] = await starknet.enable();
-      dispatch({ type: "set_account", account });
-      if (starknet.signer) {
-        dispatch({ type: "set_provider", provider: starknet.signer });
-      }
-    } catch (e) {
+      const wallet = await connect({ modalMode: "alwaysAsk" });
+      if (!wallet) throw new Error("No wallet found");
+      await wallet.enable();
+      const address = wallet.selectedAddress;
+      if (!address) throw new Error("No address returned");
+      dispatch({ type: "set_account", account: address });
+      dispatch({ type: "set_wallet_account", walletAccount: wallet.account });
+      dispatch({ type: "set_connected", con: true });
+    } catch {
       toast.error("⚠️ Argent-X wallet extension missing!", {
-        position: "top-left",
+        ...toastOpts,
         autoClose: 2000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     }
-  }, [starknet]);
+  }, []);
 
-  const setConnected = React.useCallback(async (con) => {
+  const setConnected = React.useCallback(async (con: boolean) => {
     dispatch({ type: "set_connected", con });
     if (!con) {
       dispatch({ type: "set_account", account: "" });
+      dispatch({ type: "set_wallet_account", walletAccount: undefined });
     }
   }, []);
 
@@ -113,6 +113,7 @@ const useStarknetManager = (): StarknetState => {
     connectBrowserWallet,
     checkMissingWallet,
     library,
+    walletAccount,
   };
 };
 

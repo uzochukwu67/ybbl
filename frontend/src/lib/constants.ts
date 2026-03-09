@@ -1,10 +1,10 @@
 // ── Launchpad ─────────────────────────────────────────────────────────────────
-// Sepolia testnet deployment (2026-03-08)
-// Class hash:    0x4310f81fa33fce36e578f39a9980b0c7bf499cff49aac600557aaa7faa9ad9f
+// Sepolia testnet deployment (2026-03-09)
+// Class hash:    0x129a7ca85aa4ca034e7d0f906ff3b99072d9e0c4ef91b92e19d9164c1b16933
 // ERC20 class:   0x2d2f4cf49064e879da0b0fb0a3c00d2e1dc3c6e59dfbdc0836da7be6cbfba
 export const LAUNCHPAD_ADDRESS =
   process.env.NEXT_PUBLIC_LAUNCHPAD_ADDRESS ||
-  "0x04206063d4668834e4968ca66a8eaeb186c7d8b888bd818100c228b3de60981c";
+  "0x0130eced40d347abf0ed51bd37f71303c296bc8471bbeba9deb21e03666f2497";
 
 // ── Ekubo ─────────────────────────────────────────────────────────────────────
 // Addresses are identical on Sepolia and Mainnet (Ekubo upgrades in-place)

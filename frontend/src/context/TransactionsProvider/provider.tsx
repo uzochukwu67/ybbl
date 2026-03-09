@@ -1,13 +1,12 @@
 /* eslint-disable import/no-cycle */
 import React from "react";
-import { AddTransactionResponse } from "starknet";
 import useDeepCompareEffect from "use-deep-compare-effect";
 
 import { useBlockHash } from "../BlockHashProvider";
 import { useStarknet } from "../StarknetProvider";
 
 import { TransactionsContext } from "./context";
-import { StoredTransaction } from "./model";
+import { StoredTransaction, TxPayload } from "./model";
 import transactionsReducer from "./reducer";
 
 interface TransactionsProviderProps {
@@ -22,7 +21,7 @@ const TransactionsProvider = ({
   const [transactions, dispatch] = React.useReducer(transactionsReducer, []);
 
   const addTransaction = React.useCallback(
-    (payload: AddTransactionResponse) => {
+    (payload: TxPayload) => {
       dispatch({
         type: "ADD_TRANSACTION",
         payload,
@@ -53,12 +52,14 @@ const TransactionsProvider = ({
         }
 
         try {
-          const newStatus = await library.getTransactionStatus(tx.hash);
+          // starknet.js v6: getTransactionStatus returns { finality_status, execution_status }
+          const status = await library.getTransactionStatus(tx.hash);
+          const code = (status as any).finality_status ?? "RECEIVED";
           // eslint-disable-next-line no-console
-          console.log(`new status ${newStatus.tx_status}`);
+          console.log(`new status ${code}`);
           const newTransaction: StoredTransaction = {
             ...tx,
-            code: newStatus.tx_status,
+            code,
             lastChecked: blockHash,
           };
           return newTransaction;

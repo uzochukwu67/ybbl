@@ -1,10 +1,8 @@
-import { AddTransactionResponse, Status } from "starknet";
-
-import { StoredTransactionsState, StoredTransaction } from "./model";
+import { TxPayload, StoredTransactionsState, StoredTransaction } from "./model";
 
 interface AddTransaction {
   type: "ADD_TRANSACTION";
-  payload: AddTransactionResponse;
+  payload: TxPayload;
 }
 
 interface UpdateTransactions {
@@ -20,9 +18,9 @@ const transactionsReducer = (
 ): StoredTransactionsState => {
   switch (action.type) {
     case "ADD_TRANSACTION": {
-      const storedTx = {
+      const storedTx: StoredTransaction = {
         hash: action.payload.transaction_hash,
-        code: "RECEIVED" as Status, // action.payload.code,
+        code: "RECEIVED",
         address: action.payload.address,
         lastChecked: "",
       };

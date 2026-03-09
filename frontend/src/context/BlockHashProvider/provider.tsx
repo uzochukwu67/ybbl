@@ -17,7 +17,7 @@ export function BlockHashProvider({
   );
 
   const fetchBlockHash = React.useCallback(() => {
-    library.getBlock().then((block) => {
+    library.getBlock("latest").then((block) => {
       setBlockHash(block.block_hash);
     }).catch(() => {
       // Silently ignore — block hash is cosmetic; network errors shouldn't crash the app.

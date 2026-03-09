@@ -12,27 +12,29 @@ import {
 
 const sel = stark.getSelectorFromName;
 
+// starknet.js v6: callContract returns string[] directly
 async function callRead(library: any, fn: string, calldata: string[] = []): Promise<string[]> {
-  const res = await library.callContract({
-    contract_address: LAUNCHPAD_ADDRESS,
-    entry_point_selector: sel(fn),
+  const result = await library.callContract({
+    contractAddress: LAUNCHPAD_ADDRESS,
+    entrypoint: fn,
     calldata,
   });
-  return res.result as string[];
+  // v6 returns the array directly; v5 might wrap in { result }
+  return Array.isArray(result) ? result : (result as any).result;
 }
 
-async function callWrite(library: any, fn: string, calldata: string[]): Promise<string> {
-  const res = await library.addTransaction({
-    type: "INVOKE_FUNCTION",
-    contract_address: LAUNCHPAD_ADDRESS,
-    entry_point_selector: sel(fn),
+// starknet.js v6: account.execute([{ contractAddress, entrypoint, calldata }])
+async function callWrite(walletAccount: any, fn: string, calldata: string[]): Promise<string> {
+  const res = await walletAccount.execute([{
+    contractAddress: LAUNCHPAD_ADDRESS,
+    entrypoint: fn,
     calldata,
-  });
+  }]);
   return res.transaction_hash as string;
 }
 
 export function useLaunchpad() {
-  const { library, connected, account } = useStarknet();
+  const { library, connected, account, walletAccount } = useStarknet();
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
@@ -116,70 +118,75 @@ export function useLaunchpad() {
   }, [library]);
 
   const launchToken = useCallback(async (name: string, symbol: string, baseAsset: string, vesuPoolId: string = "0"): Promise<string> => {
+    if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(library, "launch_token", [
+      const hash = await callWrite(walletAccount, "launch_token", [
         encodeShortStr(name), encodeShortStr(symbol), baseAsset, vesuPoolId,
       ]);
       setTxHash(hash);
       return hash;
     } finally { setLoading(false); }
-  }, [library]);
+  }, [walletAccount]);
 
   const buy = useCallback(async (token: string, delta: bigint, maxCost: bigint): Promise<string> => {
+    if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(library, "buy", [token, ...u256ToCalldata(delta), ...u256ToCalldata(maxCost)]);
+      const hash = await callWrite(walletAccount, "buy", [token, ...u256ToCalldata(delta), ...u256ToCalldata(maxCost)]);
       setTxHash(hash);
       return hash;
     } finally { setLoading(false); }
-  }, [library]);
+  }, [walletAccount]);
 
   const buyAnonymous = useCallback(async (token: string, delta: bigint, maxCost: bigint, nullifier: string): Promise<string> => {
+    if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(library, "buy_anonymous", [
+      const hash = await callWrite(walletAccount, "buy_anonymous", [
         token, ...u256ToCalldata(delta), ...u256ToCalldata(maxCost), nullifier,
       ]);
       setTxHash(hash);
       return hash;
     } finally { setLoading(false); }
-  }, [library]);
+  }, [walletAccount]);
 
   const sell = useCallback(async (token: string, delta: bigint, minPayout: bigint): Promise<string> => {
+    if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(library, "sell", [token, ...u256ToCalldata(delta), ...u256ToCalldata(minPayout)]);
+      const hash = await callWrite(walletAccount, "sell", [token, ...u256ToCalldata(delta), ...u256ToCalldata(minPayout)]);
       setTxHash(hash);
       return hash;
     } finally { setLoading(false); }
-  }, [library]);
+  }, [walletAccount]);
 
   const graduate = useCallback(async (token: string): Promise<string> => {
+    if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(library, "graduate", [token]);
+      const hash = await callWrite(walletAccount, "graduate", [token]);
       setTxHash(hash); return hash;
     } finally { setLoading(false); }
-  }, [library]);
+  }, [walletAccount]);
 
   const collectLpFees = useCallback(async (token: string): Promise<string> => {
+    if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(library, "collect_lp_fees", [token]);
+      const hash = await callWrite(walletAccount, "collect_lp_fees", [token]);
       setTxHash(hash); return hash;
     } finally { setLoading(false); }
-  }, [library]);
+  }, [walletAccount]);
 
-  /** Harvest accrued Vesu BTC yield → mint meme tokens → seed new Ekubo LP.
-   *  BTC-yield flywheel: every harvest deepens the meme token's Ekubo liquidity. */
   const harvestYield = useCallback(async (token: string): Promise<string> => {
+    if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(library, "harvest_yield", [token]);
+      const hash = await callWrite(walletAccount, "harvest_yield", [token]);
       setTxHash(hash); return hash;
     } finally { setLoading(false); }
-  }, [library]);
+  }, [walletAccount]);
 
   return {
     connected, account, loading, txHash,

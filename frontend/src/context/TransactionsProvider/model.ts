@@ -1,7 +1,10 @@
-import { AddTransactionResponse, Status } from "starknet";
+export interface TxPayload {
+  transaction_hash: string;
+  address?: string;
+}
 
 export interface StoredTransaction {
-  code: Status;
+  code: string;
   hash: string;
   address?: string;
   lastChecked: string;
@@ -11,7 +14,7 @@ export type StoredTransactionsState = StoredTransaction[];
 
 export interface TransactionsProviderState {
   transactions: StoredTransactionsState;
-  addTransaction: (tx: AddTransactionResponse) => void;
+  addTransaction: (tx: TxPayload) => void;
 }
 
 export const TRANSACTIONS_PROVIDER_INITIAL_STATE: TransactionsProviderState = {

@@ -1,4 +1,4 @@
-import { defaultProvider, ProviderInterface } from "starknet";
+import { RpcProvider } from "starknet";
 
 export interface StarknetState {
   account?: string;
@@ -6,7 +6,9 @@ export interface StarknetState {
   connectBrowserWallet: () => void;
   checkMissingWallet: () => void;
   setConnected: (con: boolean) => void;
-  library: ProviderInterface;
+  library: RpcProvider;
+  /** The wallet Account object (from @argent/get-starknet) used for signing transactions. */
+  walletAccount?: any;
 }
 
 export const STARKNET_STATE_INITIAL_STATE: StarknetState = {
@@ -15,5 +17,8 @@ export const STARKNET_STATE_INITIAL_STATE: StarknetState = {
   connectBrowserWallet: () => undefined,
   checkMissingWallet: () => undefined,
   setConnected: () => undefined,
-  library: defaultProvider,
+  library: new RpcProvider({
+    nodeUrl: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7",
+  }),
+  walletAccount: undefined,
 };
