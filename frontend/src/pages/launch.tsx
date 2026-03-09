@@ -33,24 +33,30 @@ interface AssetOption {
 const KNOWN_ASSETS: AssetOption[] = [
   {
     label: "wBTC (recommended)",
-    address: "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
+    address:
+      "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
     decimals: 8,
     symbol: "wBTC",
-    vesuPoolId: "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
+    vesuPoolId:
+      "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
   },
   {
     label: "USDC",
-    address: "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+    address:
+      "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
     decimals: 6,
     symbol: "USDC",
-    vesuPoolId: "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
+    vesuPoolId:
+      "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
   },
   {
     label: "STRK",
-    address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    address:
+      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
     decimals: 18,
     symbol: "STRK",
-    vesuPoolId: "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
+    vesuPoolId:
+      "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
   },
   {
     label: "Custom",
@@ -72,19 +78,35 @@ const Launch = () => {
   const [error, setError] = useState("");
   const [txHash, setTxHash] = useState("");
 
-  const assetInfo = KNOWN_ASSETS.find((a) => a.label === selectedAsset) ?? KNOWN_ASSETS[0];
-  const baseAsset = assetInfo.label === "Custom" ? customAddress : assetInfo.address;
+  const assetInfo =
+    KNOWN_ASSETS.find((a) => a.label === selectedAsset) ?? KNOWN_ASSETS[0];
+  const baseAsset =
+    assetInfo.label === "Custom" ? customAddress : assetInfo.address;
   const isCustom = assetInfo.label === "Custom";
 
   const handleLaunch = useCallback(async () => {
     setError("");
-    if (!name.trim()) { setError("Token name required"); return; }
-    if (!symbol.trim() || symbol.length > 8) { setError("Symbol required (max 8 chars)"); return; }
-    if (!baseAsset.startsWith("0x")) { setError("Invalid base asset address"); return; }
+    if (!name.trim()) {
+      setError("Token name required");
+      return;
+    }
+    if (!symbol.trim() || symbol.length > 8) {
+      setError("Symbol required (max 8 chars)");
+      return;
+    }
+    if (!baseAsset.startsWith("0x")) {
+      setError("Invalid base asset address");
+      return;
+    }
 
     try {
-      const vesuPoolId = isCustom ? "0" : (assetInfo.vesuPoolId ?? "0");
-      const hash = await launchToken(name.trim(), symbol.trim().toUpperCase(), baseAsset, vesuPoolId);
+      const vesuPoolId = isCustom ? "0" : assetInfo.vesuPoolId ?? "0";
+      const hash = await launchToken(
+        name.trim(),
+        symbol.trim().toUpperCase(),
+        baseAsset,
+        vesuPoolId
+      );
       setTxHash(hash);
       addToken({
         address: hash,
@@ -96,7 +118,15 @@ const Launch = () => {
     } catch (e: any) {
       setError(e?.message || "Transaction failed");
     }
-  }, [name, symbol, baseAsset, launchToken, addToken]);
+  }, [
+    name,
+    symbol,
+    baseAsset,
+    assetInfo.vesuPoolId,
+    isCustom,
+    launchToken,
+    addToken,
+  ]);
 
   return (
     <Box maxW="560px">
@@ -105,20 +135,32 @@ const Launch = () => {
           Launch a Token
         </Heading>
         <Text color="dark.300" fontSize="sm">
-          Deploy a new bonding curve token. No presale, no VCs, just a fair curve.
+          Deploy a new bonding curve token. No presale, no VCs, just a fair
+          curve.
         </Text>
       </Box>
 
       {!connected && (
-        <Alert status="warning" bg="dark.800" borderRadius="lg" mb={6} border="1px solid" borderColor="yellow.800">
+        <Alert
+          status="warning"
+          bg="dark.800"
+          borderRadius="lg"
+          mb={6}
+          border="1px solid"
+          borderColor="yellow.800"
+        >
           <AlertIcon color="yellow.400" />
-          <Text fontSize="sm" color="dark.200">Connect your wallet to launch a token.</Text>
+          <Text fontSize="sm" color="dark.200">
+            Connect your wallet to launch a token.
+          </Text>
         </Alert>
       )}
 
       <VStack spacing={5} align="stretch">
         <FormControl isRequired>
-          <FormLabel fontSize="sm" color="dark.200">Token Name</FormLabel>
+          <FormLabel fontSize="sm" color="dark.200">
+            Token Name
+          </FormLabel>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -131,11 +173,15 @@ const Launch = () => {
             _hover={{ borderColor: "dark.500" }}
             color="dark.50"
           />
-          <FormHelperText color="dark.400" fontSize="xs">Max 31 characters (Cairo short string)</FormHelperText>
+          <FormHelperText color="dark.400" fontSize="xs">
+            Max 31 characters (Cairo short string)
+          </FormHelperText>
         </FormControl>
 
         <FormControl isRequired>
-          <FormLabel fontSize="sm" color="dark.200">Symbol</FormLabel>
+          <FormLabel fontSize="sm" color="dark.200">
+            Symbol
+          </FormLabel>
           <Input
             value={symbol}
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
@@ -151,7 +197,9 @@ const Launch = () => {
         </FormControl>
 
         <FormControl>
-          <FormLabel fontSize="sm" color="dark.200">Base Asset</FormLabel>
+          <FormLabel fontSize="sm" color="dark.200">
+            Base Asset
+          </FormLabel>
           <Select
             value={selectedAsset}
             onChange={(e) => setSelectedAsset(e.target.value)}
@@ -164,7 +212,11 @@ const Launch = () => {
             mb={isCustom ? 2 : 0}
           >
             {KNOWN_ASSETS.map((a) => (
-              <option key={a.label} value={a.label} style={{ background: "#1a1a2e" }}>
+              <option
+                key={a.label}
+                value={a.label}
+                style={{ background: "#1a1a2e" }}
+              >
                 {a.label}
               </option>
             ))}
@@ -198,14 +250,29 @@ const Launch = () => {
         </FormControl>
 
         {/* Preview box */}
-        <Box bg="dark.800" border="1px solid" borderColor="dark.600" borderRadius="lg" p={4}>
-          <Text fontSize="xs" color="dark.300" mb={3} fontWeight="semibold">DEPLOYMENT PREVIEW</Text>
+        <Box
+          bg="dark.800"
+          border="1px solid"
+          borderColor="dark.600"
+          borderRadius="lg"
+          p={4}
+        >
+          <Text fontSize="xs" color="dark.300" mb={3} fontWeight="semibold">
+            DEPLOYMENT PREVIEW
+          </Text>
           <VStack align="stretch" spacing={2} fontSize="sm">
             {[
               ["Name", name || "—"],
               ["Symbol", symbol || "—"],
               ["Decimals", "18"],
-              ["Base asset", isCustom ? (customAddress ? shortAddr(customAddress) : "—") : assetInfo.symbol],
+              [
+                "Base asset",
+                isCustom
+                  ? customAddress
+                    ? shortAddr(customAddress)
+                    : "—"
+                  : assetInfo.symbol,
+              ],
               ["Initial price", "K × 1"],
               ["Graduation", "Set by launchpad config"],
               ["LP destination", "Ekubo full-range"],
@@ -213,19 +280,36 @@ const Launch = () => {
             ].map(([k, v]) => (
               <HStack key={k} justify="space-between">
                 <Text color="dark.400">{k}</Text>
-                <Text color="dark.100" fontFamily={k === "Symbol" ? "mono" : undefined}>{v}</Text>
+                <Text
+                  color="dark.100"
+                  fontFamily={k === "Symbol" ? "mono" : undefined}
+                >
+                  {v}
+                </Text>
               </HStack>
             ))}
           </VStack>
         </Box>
 
-        {error && <Text fontSize="sm" color="red.400">{error}</Text>}
+        {error && (
+          <Text fontSize="sm" color="red.400">
+            {error}
+          </Text>
+        )}
 
         {txHash && (
-          <Alert status="success" bg="dark.800" borderRadius="lg" border="1px solid" borderColor="green.800">
+          <Alert
+            status="success"
+            bg="dark.800"
+            borderRadius="lg"
+            border="1px solid"
+            borderColor="green.800"
+          >
             <AlertIcon color="green.400" />
             <Box>
-              <Text fontSize="sm" color="dark.50" mb={1}>Token launch submitted!</Text>
+              <Text fontSize="sm" color="dark.50" mb={1}>
+                Token launch submitted!
+              </Text>
               <Link
                 href={`${STARKNET_EXPLORER}/tx/${txHash}`}
                 isExternal
@@ -235,8 +319,12 @@ const Launch = () => {
                 View tx: {shortAddr(txHash)}
               </Link>
               <Text fontSize="xs" color="dark.300" mt={1}>
-                After the transaction confirms, find the deployed token address in the tx receipt and{" "}
-                <Link href="/explore" color="brand.400">import it in Explore</Link>.
+                After the transaction confirms, find the deployed token address
+                in the tx receipt and{" "}
+                <Link href="/explore" color="brand.400">
+                  import it in Explore
+                </Link>
+                .
               </Text>
             </Box>
           </Alert>

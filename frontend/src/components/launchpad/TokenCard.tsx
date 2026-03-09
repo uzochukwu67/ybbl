@@ -56,7 +56,9 @@ export const TokenCard = ({
                 <Text fontWeight="semibold" color="dark.50" fontSize="sm">
                   {token.name}
                 </Text>
-                <Text fontSize="xs" color="dark.400">{token.symbol}</Text>
+                <Text fontSize="xs" color="dark.400">
+                  {token.symbol}
+                </Text>
               </VStack>
             </HStack>
             {graduated && (

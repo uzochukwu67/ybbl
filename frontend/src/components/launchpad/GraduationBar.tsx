@@ -16,8 +16,16 @@ export const GraduationBar = ({ reserve, threshold, graduated }: Props) => {
         <Text fontSize="xs" color="dark.300">
           {graduated ? "Graduated to Ekubo" : "Graduation progress"}
         </Text>
-        <Tooltip label={`${formatUnits(reserve)} / ${formatUnits(threshold)} base asset`}>
-          <Text fontSize="xs" color={graduated ? "green.400" : "brand.400"} cursor="default">
+        <Tooltip
+          label={`${formatUnits(reserve)} / ${formatUnits(
+            threshold
+          )} base asset`}
+        >
+          <Text
+            fontSize="xs"
+            color={graduated ? "green.400" : "brand.400"}
+            cursor="default"
+          >
             {graduated ? "100%" : `${pct.toFixed(1)}%`}
           </Text>
         </Tooltip>

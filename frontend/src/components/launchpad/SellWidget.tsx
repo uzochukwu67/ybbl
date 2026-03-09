@@ -10,7 +10,12 @@ import {
 } from "@chakra-ui/react";
 import { useCallback, useState } from "react";
 import { useLaunchpad } from "hooks/useLaunchpad";
-import { sellPayout, withoutFee, parseUnits, formatUnits } from "lib/starknetUtils";
+import {
+  sellPayout,
+  withoutFee,
+  parseUnits,
+  formatUnits,
+} from "lib/starknetUtils";
 
 interface Props {
   token: string;
@@ -26,15 +31,22 @@ export const SellWidget = ({ token, curveK, supply, onSuccess }: Props) => {
   const [error, setError] = useState("");
 
   const delta = parseUnits(amount, 0);
-  const payout = delta > 0n && delta <= supply ? sellPayout(curveK, supply, delta) : 0n;
+  const payout =
+    delta > 0n && delta <= supply ? sellPayout(curveK, supply, delta) : 0n;
   const netPayout = withoutFee(payout);
   const slippageBps = Math.floor(parseFloat(slippage || "1") * 100);
   const minPayout = netPayout - (netPayout * BigInt(slippageBps)) / 10000n;
 
   const handleSell = useCallback(async () => {
     setError("");
-    if (!delta || delta === 0n) { setError("Enter an amount"); return; }
-    if (delta > supply) { setError("Exceeds supply sold"); return; }
+    if (!delta || delta === 0n) {
+      setError("Enter an amount");
+      return;
+    }
+    if (delta > supply) {
+      setError("Exceeds supply sold");
+      return;
+    }
     try {
       const txHash = await sell(token, delta, minPayout);
       setAmount("");
@@ -64,22 +76,36 @@ export const SellWidget = ({ token, curveK, supply, onSuccess }: Props) => {
       </FormControl>
 
       {delta > 0n && delta <= supply && (
-        <Box bg="dark.800" borderRadius="md" p={3} border="1px solid" borderColor="dark.600">
+        <Box
+          bg="dark.800"
+          borderRadius="md"
+          p={3}
+          border="1px solid"
+          borderColor="dark.600"
+        >
           <HStack justify="space-between">
-            <Text fontSize="sm" color="dark.300">You receive</Text>
+            <Text fontSize="sm" color="dark.300">
+              You receive
+            </Text>
             <Text fontSize="sm" color="green.400" fontWeight="semibold">
               {formatUnits(netPayout)} base
             </Text>
           </HStack>
           <HStack justify="space-between" mt={1}>
-            <Text fontSize="xs" color="dark.400">Fee (1%)</Text>
-            <Text fontSize="xs" color="dark.400">-{formatUnits(payout - netPayout)}</Text>
+            <Text fontSize="xs" color="dark.400">
+              Fee (1%)
+            </Text>
+            <Text fontSize="xs" color="dark.400">
+              -{formatUnits(payout - netPayout)}
+            </Text>
           </HStack>
         </Box>
       )}
 
       <FormControl>
-        <FormLabel fontSize="sm" color="dark.200">Slippage %</FormLabel>
+        <FormLabel fontSize="sm" color="dark.200">
+          Slippage %
+        </FormLabel>
         <Input
           value={slippage}
           onChange={(e) => setSlippage(e.target.value)}
@@ -93,7 +119,11 @@ export const SellWidget = ({ token, curveK, supply, onSuccess }: Props) => {
         />
       </FormControl>
 
-      {error && <Text fontSize="sm" color="red.400">{error}</Text>}
+      {error && (
+        <Text fontSize="sm" color="red.400">
+          {error}
+        </Text>
+      )}
 
       <Button
         bg="dark.700"

@@ -29,7 +29,9 @@ const Feature = ({
     _hover={{ borderColor: "brand.700" }}
     transition="border-color 0.2s"
   >
-    <Text fontSize="2xl" mb={3}>{icon}</Text>
+    <Text fontSize="2xl" mb={3}>
+      {icon}
+    </Text>
     <Text fontWeight="semibold" color="dark.50" mb={2}>
       {title}
     </Text>
@@ -59,11 +61,17 @@ const Step = ({
       justifyContent="center"
       flexShrink={0}
     >
-      <Text fontSize="sm" fontWeight="bold" color="dark.900">{n}</Text>
+      <Text fontSize="sm" fontWeight="bold" color="dark.900">
+        {n}
+      </Text>
     </Box>
     <Box>
-      <Text fontWeight="semibold" color="dark.50" mb={1}>{title}</Text>
-      <Text fontSize="sm" color="dark.300">{desc}</Text>
+      <Text fontWeight="semibold" color="dark.50" mb={1}>
+        {title}
+      </Text>
+      <Text fontSize="sm" color="dark.300">
+        {desc}
+      </Text>
     </Box>
   </HStack>
 );
@@ -88,7 +96,12 @@ const Home = () => {
           py={1}
           mb={6}
         >
-          <Text fontSize="xs" color="brand.400" fontWeight="semibold" letterSpacing="wide">
+          <Text
+            fontSize="xs"
+            color="brand.400"
+            fontWeight="semibold"
+            letterSpacing="wide"
+          >
             ZK-PRIVATE · STARKNET · BTC-NATIVE
           </Text>
         </Box>
@@ -119,9 +132,9 @@ const Home = () => {
           mb={10}
           lineHeight="tall"
         >
-          Launch tokens backed by stBTC. Trade on a fair quadratic bonding curve.
-          Graduate to Ekubo DEX with protocol-owned yield earning on Vesu.
-          Buy anonymously with Noir zero-knowledge proofs.
+          Launch tokens backed by stBTC. Trade on a fair quadratic bonding
+          curve. Graduate to Ekubo DEX with protocol-owned yield earning on
+          Vesu. Buy anonymously with Noir zero-knowledge proofs.
         </Text>
 
         <HStack spacing={4}>
@@ -228,7 +241,12 @@ const Home = () => {
         </Heading>
         <Grid templateColumns={["1fr", "1fr 1fr"]} gap={8}>
           <VStack align="stretch" spacing={6}>
-            <Text fontWeight="semibold" color="brand.400" fontSize="sm" letterSpacing="wide">
+            <Text
+              fontWeight="semibold"
+              color="brand.400"
+              fontSize="sm"
+              letterSpacing="wide"
+            >
               FOR LAUNCHERS
             </Text>
             <Step
@@ -248,7 +266,12 @@ const Home = () => {
             />
           </VStack>
           <VStack align="stretch" spacing={6}>
-            <Text fontWeight="semibold" color="brand.400" fontSize="sm" letterSpacing="wide">
+            <Text
+              fontWeight="semibold"
+              color="brand.400"
+              fontSize="sm"
+              letterSpacing="wide"
+            >
               FOR TRADERS
             </Text>
             <Step

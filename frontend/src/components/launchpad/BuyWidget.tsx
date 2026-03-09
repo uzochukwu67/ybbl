@@ -77,22 +77,36 @@ export const BuyWidget = ({ token, curveK, supply, onSuccess }: Props) => {
       </FormControl>
 
       {delta > 0n && (
-        <Box bg="dark.800" borderRadius="md" p={3} border="1px solid" borderColor="dark.600">
+        <Box
+          bg="dark.800"
+          borderRadius="md"
+          p={3}
+          border="1px solid"
+          borderColor="dark.600"
+        >
           <HStack justify="space-between">
-            <Text fontSize="sm" color="dark.300">Estimated cost</Text>
+            <Text fontSize="sm" color="dark.300">
+              Estimated cost
+            </Text>
             <Text fontSize="sm" color="brand.400" fontWeight="semibold">
               {formatUnits(totalWithFee)} base
             </Text>
           </HStack>
           <HStack justify="space-between" mt={1}>
-            <Text fontSize="xs" color="dark.400">Fee (1%)</Text>
-            <Text fontSize="xs" color="dark.400">{formatUnits(totalWithFee - cost)}</Text>
+            <Text fontSize="xs" color="dark.400">
+              Fee (1%)
+            </Text>
+            <Text fontSize="xs" color="dark.400">
+              {formatUnits(totalWithFee - cost)}
+            </Text>
           </HStack>
         </Box>
       )}
 
       <FormControl>
-        <FormLabel fontSize="sm" color="dark.200">Slippage %</FormLabel>
+        <FormLabel fontSize="sm" color="dark.200">
+          Slippage %
+        </FormLabel>
         <Input
           value={slippage}
           onChange={(e) => setSlippage(e.target.value)}
@@ -113,7 +127,11 @@ export const BuyWidget = ({ token, curveK, supply, onSuccess }: Props) => {
           colorScheme="orange"
         />
         <Tooltip label="Uses Noir ZK proof for anonymous buying — your address is not linked to this purchase on-chain.">
-          <Text fontSize="sm" color={useZk ? "brand.400" : "dark.300"} cursor="default">
+          <Text
+            fontSize="sm"
+            color={useZk ? "brand.400" : "dark.300"}
+            cursor="default"
+          >
             ZK Anonymous buy
           </Text>
         </Tooltip>
@@ -135,7 +153,9 @@ export const BuyWidget = ({ token, curveK, supply, onSuccess }: Props) => {
       )}
 
       {error && (
-        <Text fontSize="sm" color="red.400">{error}</Text>
+        <Text fontSize="sm" color="red.400">
+          {error}
+        </Text>
       )}
 
       <Button

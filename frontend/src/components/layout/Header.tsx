@@ -22,7 +22,12 @@ const Header = () => {
       borderColor="dark.700"
     >
       <Link href="/" passHref>
-        <Box as="a" display="flex" alignItems="center" _hover={{ textDecoration: "none" }}>
+        <Box
+          as="a"
+          display="flex"
+          alignItems="center"
+          _hover={{ textDecoration: "none" }}
+        >
           <Box
             w={7}
             h={7}
@@ -33,7 +38,9 @@ const Header = () => {
             justifyContent="center"
             mr={2}
           >
-            <Text fontSize="sm" fontWeight="bold" color="dark.900">B</Text>
+            <Text fontSize="sm" fontWeight="bold" color="dark.900">
+              B
+            </Text>
           </Box>
           <Text fontWeight="bold" fontSize="lg" color="dark.50">
             YBBC

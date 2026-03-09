@@ -18,8 +18,7 @@
 		"format": "prettier --write src",
 		"up-latest": "yarn upgrade-interactive --latest",
 		"release": "standard-version",
-		"push-release": "git push --follow-tags origin main",
-		"prepare": "husky install"
+		"push-release": "git push --follow-tags origin main"
 	},
 	"dependencies": {
 		"@argent/get-starknet": "^0.1.4",

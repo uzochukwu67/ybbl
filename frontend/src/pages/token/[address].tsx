@@ -88,19 +88,38 @@ const TokenPage = () => {
     setFetching(true);
     setFetchError("");
     try {
-      const [supply, reserve, fees, baseAsset, graduated, nftId, threshold, maxSupply, curveK] =
-        await Promise.all([
-          getSupplySold(address),
-          getReserve(address),
-          getFees(address),
-          getBaseAsset(address),
-          isGraduated(address),
-          getEkuboNftId(address),
-          getGradThreshold(),
-          getMaxSupply(),
-          getCurveK(),
-        ]);
-      setData({ supply, reserve, fees, baseAsset, graduated, nftId, threshold, maxSupply, curveK });
+      const [
+        supply,
+        reserve,
+        fees,
+        baseAsset,
+        graduated,
+        nftId,
+        threshold,
+        maxSupply,
+        curveK,
+      ] = await Promise.all([
+        getSupplySold(address),
+        getReserve(address),
+        getFees(address),
+        getBaseAsset(address),
+        isGraduated(address),
+        getEkuboNftId(address),
+        getGradThreshold(),
+        getMaxSupply(),
+        getCurveK(),
+      ]);
+      setData({
+        supply,
+        reserve,
+        fees,
+        baseAsset,
+        graduated,
+        nftId,
+        threshold,
+        maxSupply,
+        curveK,
+      });
       if (graduated) {
         const [py, vp] = await Promise.all([
           getPendingYield(address),
@@ -118,7 +137,7 @@ const TokenPage = () => {
 
   useEffect(() => {
     if (address) refresh();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
   const canGraduate =
@@ -128,7 +147,9 @@ const TokenPage = () => {
     try {
       const hash = await graduate(address);
       setLastTx(hash);
-      setTimeout(() => { refresh(); }, 4000);
+      setTimeout(() => {
+        refresh();
+      }, 4000);
     } catch (e: any) {
       setFetchError(e?.message || "Graduate failed");
     }
@@ -145,7 +166,9 @@ const TokenPage = () => {
 
   const handleBuySuccess = (hash: string) => {
     setLastTx(hash);
-    setTimeout(() => { refresh(); }, 4000);
+    setTimeout(() => {
+      refresh();
+    }, 4000);
   };
 
   if (!address) return null;
@@ -153,14 +176,22 @@ const TokenPage = () => {
   return (
     <Box>
       {/* Header */}
-      <Flex align="center" justify="space-between" mb={6} flexWrap="wrap" gap={3}>
+      <Flex
+        align="center"
+        justify="space-between"
+        mb={6}
+        flexWrap="wrap"
+        gap={3}
+      >
         <Box>
           <HStack mb={1}>
             <Heading fontSize="xl" color="dark.50">
               Token
             </Heading>
             {data.graduated && (
-              <Badge colorScheme="green" variant="subtle">Graduated</Badge>
+              <Badge colorScheme="green" variant="subtle">
+                Graduated
+              </Badge>
             )}
           </HStack>
           <Link
@@ -203,18 +234,38 @@ const TokenPage = () => {
       </Flex>
 
       {fetchError && (
-        <Alert status="error" bg="dark.800" borderRadius="lg" mb={5} border="1px solid" borderColor="red.800">
+        <Alert
+          status="error"
+          bg="dark.800"
+          borderRadius="lg"
+          mb={5}
+          border="1px solid"
+          borderColor="red.800"
+        >
           <AlertIcon color="red.400" />
-          <Text fontSize="sm" color="dark.200">{fetchError}</Text>
+          <Text fontSize="sm" color="dark.200">
+            {fetchError}
+          </Text>
         </Alert>
       )}
 
       {lastTx && (
-        <Alert status="success" bg="dark.800" borderRadius="lg" mb={5} border="1px solid" borderColor="green.800">
+        <Alert
+          status="success"
+          bg="dark.800"
+          borderRadius="lg"
+          mb={5}
+          border="1px solid"
+          borderColor="green.800"
+        >
           <AlertIcon color="green.400" />
           <Text fontSize="sm" color="dark.50">
             Tx submitted:{" "}
-            <Link href={`${STARKNET_EXPLORER}/tx/${lastTx}`} isExternal color="brand.400">
+            <Link
+              href={`${STARKNET_EXPLORER}/tx/${lastTx}`}
+              isExternal
+              color="brand.400"
+            >
               {shortAddr(lastTx)}
             </Link>
           </Text>
@@ -285,20 +336,38 @@ const TokenPage = () => {
             {data.graduated ? (
               <VStack spacing={5} align="stretch">
                 <VStack spacing={1} align="center" pt={2}>
-                  <Text fontWeight="semibold" color="green.400" fontSize="lg">Token Graduated</Text>
+                  <Text fontWeight="semibold" color="green.400" fontSize="lg">
+                    Token Graduated
+                  </Text>
                   <Text fontSize="xs" color="dark.400">
                     Trading live on Ekubo DEX
                   </Text>
                   {data.nftId > 0 && (
-                    <Link href="https://app.ekubo.org" isExternal color="brand.400" fontSize="sm">
+                    <Link
+                      href="https://app.ekubo.org"
+                      isExternal
+                      color="brand.400"
+                      fontSize="sm"
+                    >
                       Trade on Ekubo ↗
                     </Link>
                   )}
                 </VStack>
 
                 {/* BTC-yield flywheel panel */}
-                <Box bg="dark.900" borderRadius="lg" p={4} border="1px solid" borderColor="dark.600">
-                  <Text fontSize="xs" color="dark.300" fontWeight="semibold" mb={3}>
+                <Box
+                  bg="dark.900"
+                  borderRadius="lg"
+                  p={4}
+                  border="1px solid"
+                  borderColor="dark.600"
+                >
+                  <Text
+                    fontSize="xs"
+                    color="dark.300"
+                    fontWeight="semibold"
+                    mb={3}
+                  >
                     BTC YIELD FLYWHEEL
                   </Text>
                   <VStack spacing={3} align="stretch">
@@ -315,7 +384,9 @@ const TokenPage = () => {
                         fontFamily="mono"
                         fontWeight={pendingYield > 0n ? "bold" : "normal"}
                       >
-                        {pendingYield > 0n ? `+${pendingYield.toString()}` : "0"}
+                        {pendingYield > 0n
+                          ? `+${pendingYield.toString()}`
+                          : "0"}
                       </Text>
                     </HStack>
                     <Button
@@ -330,34 +401,38 @@ const TokenPage = () => {
                         try {
                           const hash = await harvestYield(address);
                           setLastTx(hash);
-                          setTimeout(() => { refresh(); }, 4000);
+                          setTimeout(() => {
+                            refresh();
+                          }, 4000);
                         } catch (e: any) {
                           setFetchError(e?.message || "Harvest failed");
                         }
                       }}
                     >
-                      {pendingYield > 0n ? "Harvest Yield → Deepen LP" : "No yield yet"}
+                      {pendingYield > 0n
+                        ? "Harvest Yield → Deepen LP"
+                        : "No yield yet"}
                     </Button>
                     <Text fontSize="xs" color="dark.500" textAlign="center">
-                      Harvests accrued wBTC yield from Vesu, mints meme tokens at graduation price, and seeds a new Ekubo LP position.
+                      Harvests accrued wBTC yield from Vesu, mints meme tokens
+                      at graduation price, and seeds a new Ekubo LP position.
                     </Text>
                   </VStack>
                 </Box>
               </VStack>
             ) : (
               <Tabs variant="unstyled" colorScheme="orange">
-                <TabList
-                  bg="dark.900"
-                  borderRadius="lg"
-                  p={1}
-                  mb={5}
-                >
+                <TabList bg="dark.900" borderRadius="lg" p={1} mb={5}>
                   <Tab
                     flex="1"
                     borderRadius="md"
                     fontSize="sm"
                     color="dark.300"
-                    _selected={{ bg: "brand.500", color: "dark.900", fontWeight: "bold" }}
+                    _selected={{
+                      bg: "brand.500",
+                      color: "dark.900",
+                      fontWeight: "bold",
+                    }}
                   >
                     Buy
                   </Tab>
@@ -366,7 +441,11 @@ const TokenPage = () => {
                     borderRadius="md"
                     fontSize="sm"
                     color="dark.300"
-                    _selected={{ bg: "dark.700", color: "red.400", fontWeight: "bold" }}
+                    _selected={{
+                      bg: "dark.700",
+                      color: "red.400",
+                      fontWeight: "bold",
+                    }}
                   >
                     Sell
                   </Tab>

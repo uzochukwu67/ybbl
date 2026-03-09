@@ -16,11 +16,19 @@ const Footer = () => {
         YBBC — Yield-Bearing Bonding Curve on Starknet
       </Text>
       <HStack spacing={4} fontSize="sm" color="dark.300">
-        <Link href="https://ekubo.org" isExternal _hover={{ color: "brand.500", textDecoration: "none" }}>
+        <Link
+          href="https://ekubo.org"
+          isExternal
+          _hover={{ color: "brand.500", textDecoration: "none" }}
+        >
           Powered by Ekubo
         </Link>
         <Text>·</Text>
-        <Link href="https://vesu.xyz" isExternal _hover={{ color: "brand.500", textDecoration: "none" }}>
+        <Link
+          href="https://vesu.xyz"
+          isExternal
+          _hover={{ color: "brand.500", textDecoration: "none" }}
+        >
           Yield via Vesu
         </Link>
       </HStack>

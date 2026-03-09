@@ -16,7 +16,8 @@ export const calldataToU256 = (low: string, high: string): bigint =>
 export const feltToBigInt = (felt: string): bigint => BigInt(felt);
 
 /** Decode a boolean felt ('0x0' | '0x1') */
-export const feltToBool = (felt: string): boolean => felt !== "0x0" && felt !== "0";
+export const feltToBool = (felt: string): boolean =>
+  felt !== "0x0" && felt !== "0";
 
 /** Decode a u64 felt */
 export const feltToU64 = (felt: string): number => Number(BigInt(felt));
@@ -52,7 +53,9 @@ export const parseUnits = (s: string, decimals = 18): bigint => {
   if (!s || s === ".") return 0n;
   const [whole, frac = ""] = s.split(".");
   const fracPadded = (frac + "0".repeat(decimals)).slice(0, decimals);
-  return BigInt(whole || "0") * 10n ** BigInt(decimals) + BigInt(fracPadded || "0");
+  return (
+    BigInt(whole || "0") * 10n ** BigInt(decimals) + BigInt(fracPadded || "0")
+  );
 };
 
 /** Format a raw bonding curve price (K*(2S+Δ)*Δ / Δ = K*(2S+1)) with 4 sig figs */

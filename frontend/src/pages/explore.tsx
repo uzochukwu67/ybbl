@@ -4,7 +4,6 @@ import {
   Heading,
   Input,
   SimpleGrid,
-  Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -33,7 +32,7 @@ const Explore = () => {
     if (!tokens.length) return;
     const load = async () => {
       const result: Record<string, TokenState> = {};
-      for (const t of tokens) {
+      tokens.forEach(async (t) => {
         try {
           const [reserve, threshold, graduated] = await Promise.all([
             getReserve(t.address),
@@ -44,11 +43,11 @@ const Explore = () => {
         } catch {
           result[t.address] = { reserve: 0n, threshold: 0n, graduated: false };
         }
-      }
+      });
       setStates(result);
     };
     load();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokens.length]);
 
   const handleImport = async () => {
@@ -60,7 +59,7 @@ const Explore = () => {
     }
     setImporting(true);
     try {
-      const graduated = await isGraduated(addr);
+      // const graduated = await isGraduated(addr);
       addToken({
         address: addr,
         name: "Unknown",
@@ -124,7 +123,11 @@ const Explore = () => {
           </Button>
         </Box>
         {importError && (
-          <Text color="red.400" fontSize="sm" mt={2}>{importError}</Text>
+          <Text
+            color="red.400"
+            fontSize="sm"
+            mt={2}
+          >{`⏎············{importError}⏎··········`}</Text>
         )}
       </Box>
 
@@ -132,7 +135,10 @@ const Explore = () => {
       {tokens.length === 0 ? (
         <VStack py={16} spacing={4}>
           <Text fontSize="4xl">🪙</Text>
-          <Text color="dark.300" fontSize="md">No tokens yet.</Text>
+          <Text color="dark.300" fontSize="md">
+            {" "}
+            `⏎············No·tokens·yet.⏎··········`
+          </Text>
           <Link href="/launch" passHref>
             <Button
               as="a"

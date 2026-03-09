@@ -26,7 +26,13 @@ export const BondingCurveChart = ({
   const H = height - pad.t - pad.b;
 
   const points = useMemo(
-    () => curvePoints(curveK, maxSupply === 0n ? 1_000_000_000n : maxSupply, currentSupply, 80),
+    () =>
+      curvePoints(
+        curveK,
+        maxSupply === 0n ? 1_000_000_000n : maxSupply,
+        currentSupply,
+        80
+      ),
     [curveK, maxSupply, currentSupply]
   );
 
@@ -39,7 +45,12 @@ export const BondingCurveChart = ({
   const toY = (p: number) => H - (p / maxPrice) * H;
 
   const pathData = points
-    .map((p, i) => `${i === 0 ? "M" : "L"} ${toX(p.supply).toFixed(1)} ${toY(p.price).toFixed(1)}`)
+    .map(
+      (p, i) =>
+        `${i === 0 ? "M" : "L"} ${toX(p.supply).toFixed(1)} ${toY(
+          p.price
+        ).toFixed(1)}`
+    )
     .join(" ");
 
   // Area under sold portion
@@ -48,21 +59,26 @@ export const BondingCurveChart = ({
     soldPoints.length > 1
       ? [
           `M ${toX(soldPoints[0].supply).toFixed(1)} ${H}`,
-          ...soldPoints.map((p) => `L ${toX(p.supply).toFixed(1)} ${toY(p.price).toFixed(1)}`),
+          ...soldPoints.map(
+            (p) => `L ${toX(p.supply).toFixed(1)} ${toY(p.price).toFixed(1)}`
+          ),
           `L ${toX(soldPoints[soldPoints.length - 1].supply).toFixed(1)} ${H}`,
           "Z",
         ].join(" ")
       : "";
 
   // Graduation line x position
-  const gradSupply = maxSup; // graduation is by reserve not supply, so mark at current
-  const reservePct = gradThreshold > 0n ? Number((reserve * BigInt(maxSup)) / gradThreshold) : 0;
+  const reservePct =
+    gradThreshold > 0n ? Number((reserve * BigInt(maxSup)) / gradThreshold) : 0;
   const gradX = Math.min(toX(reservePct), W);
 
   // Y-axis labels (0, mid, max price)
   const yLabels = [
     { y: H, val: "0" },
-    { y: H / 2, val: formatUnits((BigInt(Math.floor(maxPrice / 2))), 0).split(".")[0] },
+    {
+      y: H / 2,
+      val: formatUnits(BigInt(Math.floor(maxPrice / 2)), 0).split(".")[0],
+    },
     { y: 0, val: formatUnits(BigInt(Math.floor(maxPrice)), 0).split(".")[0] },
   ];
 
@@ -130,12 +146,25 @@ export const BondingCurveChart = ({
             ))}
 
             {/* X-axis labels */}
-            <text x={0} y={H + 20} fontSize={10} fill="#888">0</text>
-            <text x={W / 2} y={H + 20} textAnchor="middle" fontSize={10} fill="#888">
+            <text x={0} y={H + 20} fontSize={10} fill="#888">
+              0
+            </text>
+            <text
+              x={W / 2}
+              y={H + 20}
+              textAnchor="middle"
+              fontSize={10}
+              fill="#888"
+            >
               Supply
             </text>
             <text x={W} y={H + 20} textAnchor="end" fontSize={10} fill="#888">
-              {formatUnits(maxSupply === 0n ? 1_000_000_000n : maxSupply, 0).split(".")[0]}
+              {
+                formatUnits(
+                  maxSupply === 0n ? 1_000_000_000n : maxSupply,
+                  0
+                ).split(".")[0]
+              }
             </text>
           </g>
         </svg>

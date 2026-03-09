@@ -5,11 +5,13 @@ import { Provider, ProviderInterface } from "starknet";
 
 import { StarknetState } from "./model";
 
-// Use the configured RPC endpoint (Sepolia by default).
-// Falls back to the public Sepolia feeder gateway if no env var is set.
+// starknet.js v2.5.0 Provider takes options directly (no "sequencer" wrapper).
+// "network" accepts "mainnet-alpha" or "goerli-alpha"; for Sepolia use baseUrl.
 const sepoliaProvider = new Provider({
-  baseUrl: process.env.NEXT_PUBLIC_RPC_URL || "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/_5S7tSyp-pRnFg3J8gpIQ",
-});
+  baseUrl: "https://alpha-sepolia.starknet.io",
+  feederGatewayUrl: "https://alpha-sepolia.starknet.io/feeder_gateway",
+  gatewayUrl: "https://alpha-sepolia.starknet.io/gateway",
+} as any);
 
 interface StarknetManagerState {
   account?: string;
