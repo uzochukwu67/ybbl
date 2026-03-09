@@ -7,11 +7,11 @@ url = "https://free-rpc.nethermind.io/mainnet-juno/v0_7"
 block_id.tag = "latest"
 
 [profile.sepolia.sncast]
-rpc = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/_5S7tSyp-pRnFg3J8gpIQ"
+rpc = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/_5S7tSyp-pRnFg3J8gpIQ"
 account = "account-1"
 accounts_file = "/home/easy/.starknet_accounts/starknet_open_zeppelin_accounts.json"
 
 [profile.mainnet.sncast]
-rpc = "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_7/_5S7tSyp-pRnFg3J8gpIQ"
+rpc = "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_10/_5S7tSyp-pRnFg3J8gpIQ"
 account = "account-1"
 accounts_file = "/home/easy/.starknet_accounts/starknet_open_zeppelin_accounts.json"

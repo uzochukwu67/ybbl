@@ -40,7 +40,7 @@ const SCALE = BigInt(10 ** 18);
 /** Format a raw u256 bigint (18 decimals) as a human-readable string */
 export const formatUnits = (raw: bigint, decimals = 18): string => {
   if (raw === 0n) return "0";
-  const scale = 10n ** BigInt(decimals);
+  const scale =  BigInt(10 ** decimals);
   const whole = raw / scale;
   const frac = raw % scale;
   if (frac === 0n) return whole.toLocaleString();
@@ -54,7 +54,7 @@ export const parseUnits = (s: string, decimals = 18): bigint => {
   const [whole, frac = ""] = s.split(".");
   const fracPadded = (frac + "0".repeat(decimals)).slice(0, decimals);
   return (
-    BigInt(whole || "0") * 10n ** BigInt(decimals) + BigInt(fracPadded || "0")
+    BigInt((Number(whole) || 0) * 10 ** (decimals) + (Number(fracPadded) || 0))
   );
 };
 

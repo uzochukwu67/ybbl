@@ -1,4 +1,4 @@
-import { stark } from "starknet";
+import { shortString } from "starknet";
 import { useCallback, useState } from "react";
 import { useStarknet } from "context";
 import { LAUNCHPAD_ADDRESS } from "lib/constants";
@@ -10,7 +10,7 @@ import {
   encodeShortStr,
 } from "lib/starknetUtils";
 
-const sel = stark.getSelectorFromName;
+
 
 // starknet.js v6: callContract returns string[] directly
 async function callRead(library: any, fn: string, calldata: string[] = []): Promise<string[]> {
@@ -18,9 +18,19 @@ async function callRead(library: any, fn: string, calldata: string[] = []): Prom
     contractAddress: LAUNCHPAD_ADDRESS,
     entrypoint: fn,
     calldata,
+    blockId: "latest",
   });
-  // v6 returns the array directly; v5 might wrap in { result }
   return Array.isArray(result) ? result : (result as any).result;
+}
+
+// Call any contract (not just the launchpad)
+async function callAny(library: any, contractAddress: string, fn: string, calldata: string[] = []): Promise<string[]> {
+  const result = await library.callContract({ contractAddress, entrypoint: fn, calldata, blockId: "latest" });
+  return Array.isArray(result) ? result : (result as any).result;
+}
+
+function decodeFelt(felt: string): string {
+  try { return shortString.decodeShortString(felt); } catch { return felt; }
 }
 
 // starknet.js v6: account.execute([{ contractAddress, entrypoint, calldata }])
@@ -88,6 +98,26 @@ export function useLaunchpad() {
     return calldataToU256(r[0], r[1]);
   }, [library]);
 
+  const getTokenCount = useCallback(async (): Promise<number> => {
+    const r = await callRead(library, "get_token_count");
+    return feltToU64(r[0]);
+  }, [library]);
+
+  const getTokenByIndex = useCallback(async (index: number): Promise<string> => {
+    const r = await callRead(library, "get_token_by_index", [index.toString()]);
+    return r[0];
+  }, [library]);
+
+  const getTokenName = useCallback(async (tokenAddr: string): Promise<string> => {
+    const r = await callAny(library, tokenAddr, "get_name");
+    return decodeFelt(r[0]);
+  }, [library]);
+
+  const getTokenSymbol = useCallback(async (tokenAddr: string): Promise<string> => {
+    const r = await callAny(library, tokenAddr, "get_symbol");
+    return decodeFelt(r[0]);
+  }, [library]);
+
   const getVesuPrincipal = useCallback(async (token: string): Promise<bigint> => {
     const r = await callRead(library, "get_vesu_principal", [token]);
     return calldataToU256(r[0], r[1]);
@@ -129,23 +159,46 @@ export function useLaunchpad() {
     } finally { setLoading(false); }
   }, [walletAccount]);
 
-  const buy = useCallback(async (token: string, delta: bigint, maxCost: bigint): Promise<string> => {
+  const buy = useCallback(async (token: string, delta: bigint, maxCost: bigint, baseAsset: string): Promise<string> => {
     if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(walletAccount, "buy", [token, ...u256ToCalldata(delta), ...u256ToCalldata(maxCost)]);
+      // Multicall: approve base asset spend, then buy
+      const res = await walletAccount.execute([
+        {
+          contractAddress: baseAsset,
+          entrypoint: "approve",
+          calldata: [LAUNCHPAD_ADDRESS, ...u256ToCalldata(maxCost)],
+        },
+        {
+          contractAddress: LAUNCHPAD_ADDRESS,
+          entrypoint: "buy",
+          calldata: [token, ...u256ToCalldata(delta), ...u256ToCalldata(maxCost)],
+        },
+      ]);
+      const hash = res.transaction_hash as string;
       setTxHash(hash);
       return hash;
     } finally { setLoading(false); }
   }, [walletAccount]);
 
-  const buyAnonymous = useCallback(async (token: string, delta: bigint, maxCost: bigint, nullifier: string): Promise<string> => {
+  const buyAnonymous = useCallback(async (token: string, delta: bigint, maxCost: bigint, nullifier: string, baseAsset: string): Promise<string> => {
     if (!walletAccount) throw new Error("Wallet not connected");
     setLoading(true);
     try {
-      const hash = await callWrite(walletAccount, "buy_anonymous", [
-        token, ...u256ToCalldata(delta), ...u256ToCalldata(maxCost), nullifier,
+      const res = await walletAccount.execute([
+        {
+          contractAddress: baseAsset,
+          entrypoint: "approve",
+          calldata: [LAUNCHPAD_ADDRESS, ...u256ToCalldata(maxCost)],
+        },
+        {
+          contractAddress: LAUNCHPAD_ADDRESS,
+          entrypoint: "buy_anonymous",
+          calldata: [token, ...u256ToCalldata(delta), ...u256ToCalldata(maxCost), nullifier],
+        },
       ]);
+      const hash = res.transaction_hash as string;
       setTxHash(hash);
       return hash;
     } finally { setLoading(false); }
@@ -192,7 +245,7 @@ export function useLaunchpad() {
     connected, account, loading, txHash,
     getSupplySold, getReserve, getFees, getBaseAsset,
     isGraduated, getEkuboNftId, getYieldNftId,
-    getGradThreshold, getMaxSupply, getCurveK,
+    getGradThreshold, getMaxSupply, getCurveK, getTokenCount, getTokenByIndex, getTokenName, getTokenSymbol,
     getVesuPrincipal, getPendingYield,
     quoteBuy, quoteSell, isNullifierUsed,
     launchToken, buy, buyAnonymous, sell,

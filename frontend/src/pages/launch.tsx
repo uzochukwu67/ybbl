@@ -16,7 +16,6 @@ import {
 } from "@chakra-ui/react";
 import { useCallback, useState } from "react";
 import { useLaunchpad } from "hooks/useLaunchpad";
-import { useTokenStorage } from "hooks/useTokenStorage";
 import { STARKNET_EXPLORER } from "lib/constants";
 import { shortAddr } from "lib/starknetUtils";
 
@@ -29,10 +28,28 @@ interface AssetOption {
   vesuPoolId: string;
 }
 
-// Mainnet token addresses + their Vesu Genesis pool IDs
+// Token addresses. STRK and ETH work on both Sepolia and Mainnet.
+// wBTC and USDC are mainnet-only — their contract addresses are not deployed on Sepolia.
 const KNOWN_ASSETS: AssetOption[] = [
   {
-    label: "wBTC (recommended)",
+    label: "STRK (Sepolia + Mainnet)",
+    address:
+      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    decimals: 18,
+    symbol: "STRK",
+    vesuPoolId:
+      "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
+  },
+  {
+    label: "ETH (Sepolia + Mainnet)",
+    address:
+      "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    decimals: 18,
+    symbol: "ETH",
+    vesuPoolId: "0",
+  },
+  {
+    label: "wBTC (Mainnet only)",
     address:
       "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
     decimals: 8,
@@ -41,20 +58,11 @@ const KNOWN_ASSETS: AssetOption[] = [
       "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
   },
   {
-    label: "USDC",
+    label: "USDC (Mainnet only)",
     address:
       "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
     decimals: 6,
     symbol: "USDC",
-    vesuPoolId:
-      "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
-  },
-  {
-    label: "STRK",
-    address:
-      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-    decimals: 18,
-    symbol: "STRK",
     vesuPoolId:
       "0x4dc4ea5ec84beddca0f33c4e1b0a6b62d281e0e9b34eaec6a7aa9e54e20e",
   },
@@ -69,11 +77,10 @@ const KNOWN_ASSETS: AssetOption[] = [
 
 const Launch = () => {
   const { launchToken, connected, loading } = useLaunchpad();
-  const { addToken } = useTokenStorage();
 
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
-  const [selectedAsset, setSelectedAsset] = useState("wBTC (recommended)");
+  const [selectedAsset, setSelectedAsset] = useState("STRK (Sepolia + Mainnet)");
   const [customAddress, setCustomAddress] = useState("");
   const [error, setError] = useState("");
   const [txHash, setTxHash] = useState("");
@@ -108,13 +115,9 @@ const Launch = () => {
         vesuPoolId
       );
       setTxHash(hash);
-      addToken({
-        address: hash,
-        name: name.trim(),
-        symbol: symbol.trim().toUpperCase(),
-        baseAsset,
-        launchedAt: Date.now(),
-      });
+      // NOTE: `hash` is the tx hash, not the token address.
+      // The real token address is emitted as a TokenLaunched event.
+      // The Explore page auto-discovers it from the chain via get_token_by_index.
     } catch (e: any) {
       setError(e?.message || "Transaction failed");
     }
@@ -125,7 +128,6 @@ const Launch = () => {
     assetInfo.vesuPoolId,
     isCustom,
     launchToken,
-    addToken,
   ]);
 
   return (
@@ -245,7 +247,7 @@ const Launch = () => {
           )}
 
           <FormHelperText color="dark.400" fontSize="xs" mt={1}>
-            wBTC is recommended — reserve earns yield via Vesu after graduation.
+            Use STRK or ETH on Sepolia. wBTC/USDC are mainnet-only.
           </FormHelperText>
         </FormControl>
 
@@ -276,7 +278,7 @@ const Launch = () => {
               ["Initial price", "K × 1"],
               ["Graduation", "Set by launchpad config"],
               ["LP destination", "Ekubo full-range"],
-              ["Reserve yield", "Vesu"],
+              ["Reserve yield", assetInfo.vesuPoolId !== "0" ? "Vesu" : "None (no Vesu pool)"],
             ].map(([k, v]) => (
               <HStack key={k} justify="space-between">
                 <Text color="dark.400">{k}</Text>
@@ -319,10 +321,9 @@ const Launch = () => {
                 View tx: {shortAddr(txHash)}
               </Link>
               <Text fontSize="xs" color="dark.300" mt={1}>
-                After the transaction confirms, find the deployed token address
-                in the tx receipt and{" "}
+                After the transaction confirms, your token will appear automatically on the{" "}
                 <Link href="/explore" color="brand.400">
-                  import it in Explore
+                  Explore page
                 </Link>
                 .
               </Text>

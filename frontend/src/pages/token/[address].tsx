@@ -41,11 +41,13 @@ interface TokenData {
   curveK: bigint;
 }
 
+const STRK = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+
 const EMPTY: TokenData = {
   supply: 0n,
   reserve: 0n,
   fees: 0n,
-  baseAsset: "",
+  baseAsset: STRK,
   graduated: false,
   nftId: 0,
   threshold: 0n,
@@ -79,7 +81,7 @@ const TokenPage = () => {
   const [data, setData] = useState<TokenData>(EMPTY);
   const [pendingYield, setPendingYield] = useState<bigint>(0n);
   const [vesuPrincipal, setVesuPrincipal] = useState<bigint>(0n);
-  const [fetching, setFetching] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState("");
   const [lastTx, setLastTx] = useState("");
 
@@ -136,7 +138,11 @@ const TokenPage = () => {
   };
 
   useEffect(() => {
-    if (address) refresh();
+    if (address) {
+      refresh();
+    } else {
+      setFetching(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
@@ -454,6 +460,7 @@ const TokenPage = () => {
                   <TabPanel p={0}>
                     <BuyWidget
                       token={address}
+                      baseAsset={data.baseAsset}
                       curveK={data.curveK}
                       supply={data.supply}
                       onSuccess={handleBuySuccess}

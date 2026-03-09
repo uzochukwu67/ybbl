@@ -17,12 +17,16 @@ import { stark } from "starknet";
 
 interface Props {
   token: string;
+  baseAsset: string;
   curveK: bigint;
   supply: bigint;
   onSuccess?: (txHash: string) => void;
 }
 
-export const BuyWidget = ({ token, curveK, supply, onSuccess }: Props) => {
+const STRK = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+
+
+export const BuyWidget = ({ token, baseAsset, curveK, supply, onSuccess }: Props) => {
   const { buy, buyAnonymous, loading, connected } = useLaunchpad();
   const [amount, setAmount] = useState("");
   const [slippage, setSlippage] = useState("1");
@@ -41,21 +45,24 @@ export const BuyWidget = ({ token, curveK, supply, onSuccess }: Props) => {
       setError("Enter an amount");
       return;
     }
+    if (!baseAsset || baseAsset === "0x0") {
+      baseAsset = STRK;
+    }
     try {
       let txHash: string;
       if (useZk) {
         // Generate a random nullifier (in prod: derive from ZK proof)
         const nullifier = stark.randomAddress();
-        txHash = await buyAnonymous(token, delta, maxCost, nullifier);
+        txHash = await buyAnonymous(token, delta, maxCost, nullifier, baseAsset);
       } else {
-        txHash = await buy(token, delta, maxCost);
+        txHash = await buy(token, delta, maxCost, baseAsset);
       }
       setAmount("");
       onSuccess?.(txHash);
     } catch (e: any) {
       setError(e?.message || "Transaction failed");
     }
-  }, [delta, maxCost, useZk, token, buy, buyAnonymous, onSuccess]);
+  }, [delta, maxCost, useZk, token, baseAsset, buy, buyAnonymous, onSuccess]);
 
   return (
     <VStack spacing={4} align="stretch">

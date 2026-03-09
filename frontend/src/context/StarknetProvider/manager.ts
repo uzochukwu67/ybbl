@@ -1,13 +1,17 @@
 import { connect } from "@argent/get-starknet";
 import { toast } from "material-react-toastify";
 import React from "react";
-import { RpcProvider } from "starknet";
+import { RpcProvider ,constants} from "starknet";
 
 import { StarknetState } from "./model";
 
 // Public Sepolia JSON-RPC endpoint (feeder gateway is deprecated on Sepolia)
 const sepoliaProvider = new RpcProvider({
-  nodeUrl: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7",
+  nodeUrl: process.env.NEXT_PUBLIC_RPC_URL ||
+    "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/_5S7tSyp-pRnFg3J8gpIQ",
+    blockIdentifier: "latest",
+    chainId: constants.StarknetChainId.SN_SEPOLIA,
+
 });
 
 interface StarknetManagerState {
@@ -72,7 +76,7 @@ const useStarknetManager = (): StarknetState => {
 
   const checkMissingWallet = React.useCallback(async () => {
     try {
-      const wallet = await connect({ modalMode: "neverAsk" });
+      const wallet = await connect({  });
       if (!wallet) throw new Error("No wallet");
       await wallet.enable();
     } catch {
@@ -82,7 +86,7 @@ const useStarknetManager = (): StarknetState => {
 
   const connectBrowserWallet = React.useCallback(async () => {
     try {
-      const wallet = await connect({ modalMode: "alwaysAsk" });
+      const wallet = await connect({  });
       if (!wallet) throw new Error("No wallet found");
       await wallet.enable();
       const address = wallet.selectedAddress;

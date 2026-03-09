@@ -64,6 +64,8 @@ pub trait ILaunchpad<TContractState> {
     fn quote_sell(self: @TContractState, token: ContractAddress, delta: u256) -> u256;
     fn is_nullifier_used(self: @TContractState, nullifier: felt252) -> bool;
     fn get_verifier(self: @TContractState) -> ContractAddress;
+    fn get_token_count(self: @TContractState) -> u64;
+    fn get_token_by_index(self: @TContractState, index: u64) -> ContractAddress;
 }
 
 #[starknet::contract]
@@ -109,6 +111,8 @@ pub mod Launchpad {
         /// NFT id of the most recently harvested yield LP position.
         yield_nft_id: Map<ContractAddress, u64>,
         token_count: u64,
+        /// Index → token address, for on-chain enumeration.
+        tokens_by_index: Map<u64, ContractAddress>,
         nullifiers: Map<felt252, bool>,
         verifier: ContractAddress,
         /// Amount of wBTC originally deposited to Vesu at graduation.
@@ -207,6 +211,7 @@ pub mod Launchpad {
             self.yield_nft_id.write(token_addr, 0);
             self.vesu_principal.write(token_addr, 0);
             self.vesu_pool_id.write(token_addr, vesu_pool_id);
+            self.tokens_by_index.write(count, token_addr);
             self.token_count.write(count + 1);
             self.emit(TokenLaunched { token: token_addr, base_asset, launcher: get_caller_address() });
             token_addr
@@ -402,6 +407,8 @@ pub mod Launchpad {
         fn get_vesu_principal(self: @ContractState, token: ContractAddress) -> u256 { self.vesu_principal.read(token) }
         fn is_nullifier_used(self: @ContractState, nullifier: felt252) -> bool { self.nullifiers.read(nullifier) }
         fn get_verifier(self: @ContractState) -> ContractAddress { self.verifier.read() }
+        fn get_token_count(self: @ContractState) -> u64 { self.token_count.read() }
+        fn get_token_by_index(self: @ContractState, index: u64) -> ContractAddress { self.tokens_by_index.read(index) }
 
         fn get_pending_yield(self: @ContractState, token: ContractAddress) -> u256 {
             let vesu_addr = self.vesu_pool.read();

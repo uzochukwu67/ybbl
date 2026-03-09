@@ -18,7 +18,8 @@ export const STARKNET_STATE_INITIAL_STATE: StarknetState = {
   checkMissingWallet: () => undefined,
   setConnected: () => undefined,
   library: new RpcProvider({
-    nodeUrl: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7",
+    nodeUrl: process.env.NEXT_PUBLIC_RPC_URL ||
+      "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/_5S7tSyp-pRnFg3J8gpIQ",
   }),
   walletAccount: undefined,
 };
